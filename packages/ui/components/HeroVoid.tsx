@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, MutableRefObject } from 'react'
+import { useEffect, useRef, MutableRefObject } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -27,7 +27,7 @@ function CameraRig({ progressRef }: { progressRef: MutableRefObject<number> }) {
 export default function HeroVoid() {
   const containerRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef(0)
-  const [textOpacity, setTextOpacity] = useState(0)
+  const textOverlayRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -40,8 +40,9 @@ export default function HeroVoid() {
       onUpdate: (self) => {
         progressRef.current = self.progress
         // Text fades in during last 15% of scroll
-        const textProgress = Math.max(0, (self.progress - 0.85) / 0.15)
-        setTextOpacity(textProgress)
+        if (textOverlayRef.current) {
+          textOverlayRef.current.style.opacity = String(Math.max(0, (self.progress - 0.85) / 0.15))
+        }
       },
     })
 
@@ -79,6 +80,7 @@ export default function HeroVoid() {
 
         {/* Title overlay */}
         <div
+          ref={textOverlayRef}
           style={{
             position: 'absolute',
             inset: 0,
@@ -88,7 +90,7 @@ export default function HeroVoid() {
             justifyContent: 'center',
             pointerEvents: 'none',
             zIndex: 10,
-            opacity: textOpacity,
+            opacity: 0,
             transition: 'opacity 0.1s linear',
           }}
         >
