@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-base:      #0D0D0D;
+    --bg-surface:   #141414;
+    --bg-raised:    #1A1A1A;
+    --border:       #2A2A2A;
+    --text-primary: #F0EDE8;
+    --text-muted:   #6B6460;
+    --text-dim:     #3D3A38;
+    --accent:       #D4917A;
+    --accent-dim:   #8C5A47;
+    --dither-hi:    #E8E4DF;
+    --dither-lo:    #1E1C1A;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { font-family: InterVariable, Inter, system-ui, sans-serif; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * { margin: 0; padding: 0; }
+}
+
+@layer components {
+  /* CRT scanline overlay — apply .scanline-zone to a position:relative element */
+  .scanline-zone {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scanline-zone::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.18) 2px,
+      rgba(0, 0, 0, 0.18) 3px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Hairline border utility */
+  .border-hair { border: 1px solid var(--border); }
+
+  /* Label metadata style */
+  .label {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* Editorial title */
+  .editorial {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+    color: var(--text-muted);
+  }
+
+  .status-badge[data-status="OPEN"]     { border-color: var(--accent-dim); color: var(--accent); }
+  .status-badge[data-status="RESOLVED"] { border-color: #3A4A3A; color: #6B8F6B; }
+  .status-badge[data-status="DISPUTED"] { border-color: #4A3A2A; color: #C4845A; }
+  .status-badge[data-status="CLOSED"]   { border-color: var(--border); color: var(--text-dim); }
+}
