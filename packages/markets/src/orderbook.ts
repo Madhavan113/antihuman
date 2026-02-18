@@ -8,6 +8,7 @@ import {
   MarketError,
   type MarketOrder,
   type OrderBookSnapshot,
+  type OrderFill,
   type PublishOrderInput
 } from "./types.js";
 
@@ -179,6 +180,8 @@ export async function publishOrder(
     store.orders.set(market.id, orders);
     persistMarketStore(store);
 
+    await matchOrdersForMarket(market.id, normalizedOutcome, options);
+
     return order;
   } catch (error) {
     throw toMarketError(`Failed to publish order for market ${input.marketId}.`, error);
@@ -237,6 +240,100 @@ export async function cancelOrder(
   persistMarketStore(store);
 
   return order;
+}
+
+async function matchOrdersForMarket(
+  marketId: string,
+  outcome: string,
+  options: PublishOrderOptions = {}
+): Promise<OrderFill[]> {
+  const store = getMarketStore(options.store);
+  const orders = store.orders.get(marketId) ?? [];
+
+  const openBids = orders
+    .filter((o) => o.outcome === outcome && o.side === "BID" && o.status === "OPEN")
+    .sort((a, b) => b.price - a.price || Date.parse(a.createdAt) - Date.parse(b.createdAt));
+
+  const openAsks = orders
+    .filter((o) => o.outcome === outcome && o.side === "ASK" && o.status === "OPEN")
+    .sort((a, b) => a.price - b.price || Date.parse(a.createdAt) - Date.parse(b.createdAt));
+
+  const fills: OrderFill[] = [];
+  let bidIdx = 0;
+  let askIdx = 0;
+
+  const deps: OrderBookDependencies = {
+    submitMessage,
+    getMessages,
+    now: () => new Date(),
+    ...options.deps
+  };
+
+  while (bidIdx < openBids.length && askIdx < openAsks.length) {
+    const bid = openBids[bidIdx];
+    const ask = openAsks[askIdx];
+
+    if (!bid || !ask || bid.price < ask.price) {
+      break;
+    }
+
+    const remainingBid = bid.quantity - (bid.filledQuantity ?? 0);
+    const remainingAsk = ask.quantity - (ask.filledQuantity ?? 0);
+    const fillQty = Math.min(remainingBid, remainingAsk);
+
+    if (fillQty <= 0) {
+      if (remainingBid <= 0) bidIdx++;
+      if (remainingAsk <= 0) askIdx++;
+      continue;
+    }
+
+    const fillPrice = ask.price;
+    const fill: OrderFill = {
+      id: randomUUID(),
+      marketId,
+      outcome,
+      bidOrderId: bid.id,
+      askOrderId: ask.id,
+      bidAccountId: bid.accountId,
+      askAccountId: ask.accountId,
+      price: fillPrice,
+      quantity: fillQty,
+      createdAt: deps.now().toISOString()
+    };
+
+    bid.filledQuantity = (bid.filledQuantity ?? 0) + fillQty;
+    ask.filledQuantity = (ask.filledQuantity ?? 0) + fillQty;
+
+    if (bid.filledQuantity >= bid.quantity) {
+      bid.status = "FILLED";
+      bidIdx++;
+    }
+    if (ask.filledQuantity >= ask.quantity) {
+      ask.status = "FILLED";
+      askIdx++;
+    }
+
+    fills.push(fill);
+
+    try {
+      await deps.submitMessage(
+        marketId,
+        {
+          type: "ORDER_FILLED",
+          ...fill
+        },
+        { client: options.client }
+      );
+    } catch {
+      // Fill is recorded locally even if HCS audit fails
+    }
+  }
+
+  if (fills.length > 0) {
+    persistMarketStore(store);
+  }
+
+  return fills;
 }
 
 export async function getOrderBook(

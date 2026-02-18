@@ -47,6 +47,7 @@ export {
   type MarketCurveState,
   type MarketLiquidityModel,
   type MarketResolution,
+  type OrderFill,
   type MarketStatus,
   type OracleVoteInput,
   type OrderBookSnapshot,

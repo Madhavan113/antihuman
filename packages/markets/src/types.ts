@@ -95,6 +95,8 @@ export interface PlaceBetInput {
   bettorAccountId: string;
   outcome: string;
   amountHbar: number;
+  /** Maximum acceptable implied probability (0-100) for curve markets. Bet fails if price exceeds this. */
+  maxPricePercent?: number;
 }
 
 export interface MarketResolution {
@@ -167,10 +169,24 @@ export interface MarketOrder {
   quantity: number;
   price: number;
   createdAt: string;
-  status: "OPEN" | "CANCELLED";
+  status: "OPEN" | "CANCELLED" | "FILLED";
+  filledQuantity?: number;
   topicTransactionId?: string;
   topicTransactionUrl?: string;
   topicSequenceNumber?: number;
+}
+
+export interface OrderFill {
+  id: string;
+  marketId: string;
+  outcome: string;
+  bidOrderId: string;
+  askOrderId: string;
+  bidAccountId: string;
+  askAccountId: string;
+  price: number;
+  quantity: number;
+  createdAt: string;
 }
 
 export interface PublishOrderInput {

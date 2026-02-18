@@ -9,6 +9,10 @@ export async function runClawdbotNetwork(port = 3001): Promise<void> {
     autonomy: {
       strictMutations: true
     },
+    agentPlatform: {
+      enabled: true,
+      selfRegistrationEnabled: true
+    },
     clawdbots: {
       enabled: true,
       tickMs: 10_000,

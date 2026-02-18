@@ -19,7 +19,7 @@ function isAllowedMutationPath(path: string, allowedPrefixes: readonly string[])
 
 export function createAutonomyMutationGuard(options: AutonomyMutationGuardOptions = {}) {
   const strictMutations = options.strictMutations ?? false;
-  const allowedMutationPrefixes = options.allowedMutationPrefixes ?? ["/autonomy", "/clawdbots"];
+  const allowedMutationPrefixes = options.allowedMutationPrefixes ?? ["/autonomy", "/clawdbots", "/agent/v1"];
 
   return (request: Request, response: Response, next: NextFunction): void => {
     if (!strictMutations) {

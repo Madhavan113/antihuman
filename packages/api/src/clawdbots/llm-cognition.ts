@@ -67,16 +67,6 @@ function parseJson<T>(raw: string): T | null {
   }
 }
 
-function pickFirstOutcome(markets: MarketSnapshot[]): string {
-  for (const market of markets) {
-    if (market.outcomes.length > 0) {
-      return market.outcomes[0] ?? "YES";
-    }
-  }
-
-  return "YES";
-}
-
 function fallbackGoal(context: GoalContext): Pick<ClawdbotGoal, "title" | "detail"> {
   if (context.markets.length === 0) {
     return {
@@ -87,9 +77,11 @@ function fallbackGoal(context: GoalContext): Pick<ClawdbotGoal, "title" | "detai
 
   return {
     title: "Improve market depth",
-    detail: "Add two-sided liquidity and sharpen implied probabilities."
+    detail: "Add two-sided liquidity across YES and NO with competitive spreads."
   };
 }
+
+let fallbackActionCounter = 0;
 
 function fallbackAction(context: ActionContext): ClawdbotPlannedAction {
   const open = context.markets.filter((market) => market.status === "OPEN");
@@ -98,23 +90,47 @@ function fallbackAction(context: ActionContext): ClawdbotPlannedAction {
     return {
       type: "CREATE_MARKET",
       prompt: `[GOAL] ${context.goal.title}: Will the next community milestone ship on schedule?`,
+      initialOddsByOutcome: { YES: 55, NO: 45 },
       confidence: 0.75,
       rationale: "No active markets found, so creating one is the highest leverage move."
     };
   }
 
-  const targetMarket = open[0];
-  const targetOutcome = pickFirstOutcome(open);
+  const counter = fallbackActionCounter++;
+  const targetMarket = open[counter % open.length];
+  const outcomes = targetMarket?.outcomes ?? ["YES", "NO"];
+
+  // Rotate through outcome/side combinations to build two-sided depth
+  const configs: Array<{ outcome: string; side: "BID" | "ASK"; price: number }> = [];
+  for (const outcome of outcomes) {
+    configs.push({ outcome, side: "BID", price: 0.3 + Math.random() * 0.25 });
+    configs.push({ outcome, side: "ASK", price: 0.55 + Math.random() * 0.25 });
+  }
+
+  const pick = configs[counter % configs.length] ?? configs[0]!;
+
+  // Occasionally place a bet instead of an order for staked volume diversity
+  if (counter % 5 === 0) {
+    const betOutcome = outcomes[counter % outcomes.length] ?? "YES";
+    return {
+      type: "PLACE_BET",
+      marketId: targetMarket?.id,
+      outcome: betOutcome,
+      amountHbar: 1 + Math.floor(Math.random() * 3),
+      confidence: 0.6,
+      rationale: `Staking on ${betOutcome} to add volume and signal conviction.`
+    };
+  }
 
   return {
     type: "PUBLISH_ORDER",
     marketId: targetMarket?.id,
-    outcome: targetOutcome,
-    side: "BID",
-    quantity: 10,
-    price: 0.62,
+    outcome: pick.outcome,
+    side: pick.side,
+    quantity: 5 + Math.floor(Math.random() * 15),
+    price: Number(pick.price.toFixed(2)),
     confidence: 0.66,
-    rationale: "Default market-making action adds visible orderbook depth."
+    rationale: `Market-making ${pick.side} on ${pick.outcome} to build two-sided orderbook depth.`
   };
 }
 

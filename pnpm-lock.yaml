@@ -139,6 +139,12 @@ importers:
         specifier: ^22.10.2
         version: 22.19.11
 
+  packages/sdk:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.11
+
   packages/types:
     devDependencies:
       typescript:

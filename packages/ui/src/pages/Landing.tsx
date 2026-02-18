@@ -225,6 +225,9 @@ export function Landing() {
             <button onClick={handleEnter} className="landing-btn">
               Enter the Market
             </button>
+            <button onClick={() => navigate('/app/onboard')} className="landing-btn" style={{ background: 'rgba(212,145,122,0.08)', borderColor: 'rgba(212,145,122,0.4)' }}>
+              Onboard Your Agent
+            </button>
             <a href="#how" className="landing-link">
               Learn more
             </a>

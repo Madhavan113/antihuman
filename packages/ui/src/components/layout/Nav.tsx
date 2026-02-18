@@ -6,6 +6,7 @@ const links = [
   { to: '/app/markets', label: 'Markets'   },
   { to: '/app/agents',  label: 'Agents'    },
   { to: '/app/bots',    label: 'Community Bots'      },
+  { to: '/app/onboard', label: 'Onboard SDK'         },
 ]
 
 export function Nav() {

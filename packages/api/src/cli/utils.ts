@@ -75,6 +75,11 @@ export function loadEnvFromDisk(startDir = process.cwd()): string {
     process.env[key] = value;
   }
 
+  // Reset the Hedera client singleton so it re-initializes with the
+  // credentials just loaded from disk (the singleton may have been created
+  // at module-import time before env vars were available).
+  resetHederaClientForTests();
+
   return envPath;
 }
 

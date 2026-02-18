@@ -1,4 +1,7 @@
+import { readFileSync } from "node:fs";
 import { createServer, type Server as HttpServer } from "node:http";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import express, { type Express } from "express";
 import { WebSocketServer } from "ws";
@@ -291,11 +294,34 @@ export function createApiServer(options: CreateApiServerOptions = {}): ApiServer
     response.json({ ok: true, service: "@simulacrum/api" });
   });
 
+  // Serve OpenAPI spec at /docs
+  const openapiSpecPath = join(dirname(fileURLToPath(import.meta.url)), "..", "openapi.json");
+  try {
+    const openapiSpec = JSON.parse(readFileSync(openapiSpecPath, "utf-8"));
+    app.get("/docs", (_request, response) => {
+      response.json(openapiSpec);
+    });
+  } catch {
+    // openapi.json not available in this build — skip /docs endpoint
+  }
+
   if (agentPlatform.enabled && agentAuthService && agentFaucetService) {
+    // IP-based rate limit on auth endpoints (register/challenge/verify)
     const authRateLimit = createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 20 });
+    // Per-agent rate limit on authenticated endpoints — keys by agentId when available, falls back to IP
+    const agentRateLimit = createRateLimitMiddleware({
+      windowMs: 60_000,
+      maxRequests: 60,
+      keyGenerator: (request) =>
+        request.agentContext?.agentId ?? request.ip ?? request.socket.remoteAddress ?? "unknown"
+    });
+    app.use(
+      "/agent/v1/auth",
+      authRateLimit
+    );
     app.use(
       "/agent/v1",
-      authRateLimit,
+      agentRateLimit,
       createAgentV1Router({
         eventBus,
         authService: agentAuthService,
@@ -316,6 +342,27 @@ export function createApiServer(options: CreateApiServerOptions = {}): ApiServer
 
   const httpServer = createServer(app);
   const webSocketServer = new WebSocketServer({ server: httpServer, path: "/ws" });
+
+  // Authenticate WebSocket connections when agent platform is enabled.
+  // Clients connect with: ws://host/ws?token=<JWT>
+  webSocketServer.on("connection", (ws, request) => {
+    if (agentAuthService) {
+      const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
+      const token = url.searchParams.get("token");
+
+      if (!token) {
+        ws.close(4001, "Missing authentication token. Connect with ?token=<JWT>.");
+        return;
+      }
+
+      try {
+        agentAuthService.verifyAccessToken(token);
+      } catch {
+        ws.close(4003, "Invalid or expired token.");
+        return;
+      }
+    }
+  });
 
   const unsubscribe = eventBus.subscribe((event) => {
     const data = JSON.stringify(event);

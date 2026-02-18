@@ -878,7 +878,7 @@ export class ClawdbotNetwork {
     quantity: number;
     price: number;
     createdAt: string;
-    status: "OPEN" | "CANCELLED";
+    status: "OPEN" | "CANCELLED" | "FILLED";
   }> {
     const runtime = this.getBot(botId);
     const store = getMarketStore();
@@ -2149,6 +2149,87 @@ export class ClawdbotNetwork {
           marketId: resolution.marketId,
           resolvedOutcome: resolution.resolvedOutcome
         };
+      },
+      selfAttest: async (args) => {
+        const marketId = parseNonEmptyString(args.marketId, "");
+        if (!marketId) throw new Error("marketId is required.");
+        const proposedOutcome = parseNonEmptyString(args.proposedOutcome, "YES");
+        const reason = parseNonEmptyString(args.reason, "ClawDBot self-attestation");
+        const evidence = parseNonEmptyString(args.evidence, "");
+        const challengeWindowMinutes = parsePositiveNumber(args.challengeWindowMinutes, 30);
+
+        const result = await selfAttestMarket(
+          {
+            marketId,
+            proposedOutcome,
+            reason: reason || undefined,
+            evidence: evidence || undefined,
+            challengeWindowMinutes,
+            attestedByAccountId: wallet.accountId
+          },
+          { client: this.getClient(wallet) }
+        );
+        return result;
+      },
+      challengeResolution: async (args) => {
+        const marketId = parseNonEmptyString(args.marketId, "");
+        if (!marketId) throw new Error("marketId is required.");
+        const proposedOutcome = parseNonEmptyString(args.proposedOutcome, "YES");
+        const reason = parseNonEmptyString(args.reason, "ClawDBot challenge");
+        const evidence = parseNonEmptyString(args.evidence, "");
+
+        const result = await challengeMarketResolution(
+          {
+            marketId,
+            proposedOutcome,
+            reason,
+            evidence: evidence || undefined,
+            challengerAccountId: wallet.accountId
+          },
+          { client: this.getClient(wallet) }
+        );
+        return result;
+      },
+      oracleVote: async (args) => {
+        const marketId = parseNonEmptyString(args.marketId, "");
+        if (!marketId) throw new Error("marketId is required.");
+        const outcome = parseNonEmptyString(args.outcome, "YES");
+        const confidence = typeof args.confidence === "number" ? clamp(args.confidence, 0, 1) : undefined;
+        const reason = parseNonEmptyString(args.reason, "");
+
+        const result = await submitOracleVote(
+          {
+            marketId,
+            outcome,
+            confidence,
+            reason: reason || undefined,
+            voterAccountId: wallet.accountId
+          },
+          { client: this.getClient(wallet) }
+        );
+        return result;
+      },
+      claimWinnings: async (args) => {
+        const marketId = parseNonEmptyString(args.marketId, "");
+        if (!marketId) throw new Error("marketId is required.");
+        const payoutAccountId = parseNonEmptyString(args.payoutAccountId, "");
+
+        // The escrow account (creator's wallet) must sign the payout transfer, not the winner's wallet.
+        const store = getMarketStore();
+        const market = store.markets.get(marketId);
+        const escrowClient =
+          (market ? this.clientForAccount(market.escrowAccountId) : null) ??
+          this.getOperatorClient();
+
+        const claim = await claimWinnings(
+          {
+            marketId,
+            accountId: wallet.accountId,
+            payoutAccountId: payoutAccountId || undefined
+          },
+          { client: escrowClient }
+        );
+        return { claimId: claim.id };
       }
     });
   }

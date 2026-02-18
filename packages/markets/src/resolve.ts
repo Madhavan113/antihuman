@@ -174,6 +174,13 @@ export async function selfAttestMarket(
     throw new MarketError(`Market ${input.marketId} is already resolved.`);
   }
 
+  if (market.status === "DISPUTED" && market.selfAttestation) {
+    throw new MarketError(
+      `Market ${input.marketId} already has an active dispute round. ` +
+      `Wait for the current challenge window to close and oracle voting to finalize before re-attesting.`
+    );
+  }
+
   const deps: ResolveMarketDependencies = {
     submitMessage,
     now: () => new Date(),
@@ -193,8 +200,8 @@ export async function selfAttestMarket(
   market.status = "DISPUTED";
   market.selfAttestation = attestation;
   market.challengeWindowEndsAt = windowEnds;
-  market.challenges = [];
-  market.oracleVotes = [];
+  market.challenges = market.challenges ?? [];
+  market.oracleVotes = market.oracleVotes ?? [];
   persistMarketStore(store);
 
   await deps.submitMessage(

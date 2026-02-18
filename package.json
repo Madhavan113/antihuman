@@ -4,7 +4,9 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "dev": "pnpm --filter @simulacrum/api run build && (pnpm --filter @simulacrum/api run infra:clawdbots & pnpm --filter @simulacrum/ui run dev & wait)",
+    "api": "pnpm --filter @simulacrum/api run build && pnpm --filter @simulacrum/api run dev",
+    "ui": "pnpm --filter @simulacrum/ui run dev",
+    "dev": "pnpm -r run build && (pnpm --filter @simulacrum/api run infra:clawdbots & pnpm --filter @simulacrum/ui run dev & wait)",
     "build": "pnpm -r run build",
     "test": "pnpm -r run test",
     "smoke:api": "pnpm --filter @simulacrum/api run smoke",

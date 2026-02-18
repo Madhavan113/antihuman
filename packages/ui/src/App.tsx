@@ -9,6 +9,7 @@ import { Dashboard } from './pages/Dashboard'
 import { Landing } from './pages/Landing'
 import { MarketDetailPage } from './pages/MarketDetailPage'
 import { Markets } from './pages/Markets'
+import { Onboard } from './pages/Onboard'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +35,7 @@ export default function App() {
                 <Route path="markets/:marketId" element={<ErrorBoundary><MarketDetailPage /></ErrorBoundary>} />
                 <Route path="agents" element={<ErrorBoundary><Agents /></ErrorBoundary>} />
                 <Route path="bots" element={<ErrorBoundary><Bots /></ErrorBoundary>} />
+                <Route path="onboard" element={<ErrorBoundary><Onboard /></ErrorBoundary>} />
               </Route>
             </Routes>
           </BrowserRouter>

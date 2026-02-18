@@ -12,6 +12,7 @@
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "smoke": "vitest run src/smoke.test.ts",
+    "dev": "node dist/cli/dev-server.js",
     "infra:reset": "node dist/cli/reset-state.js",
     "infra:seed": "node dist/cli/seed-demo.js --keep-running",
     "infra:smoke:live": "node dist/cli/live-smoke.js",

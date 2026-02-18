@@ -243,9 +243,6 @@ export function createMarketsRouter(eventBus: ApiEventBus): Router {
       try {
         const store = getMarketStore();
         const market = store.markets.get(request.params.marketId);
-        const priorVotes = [
-          ...((market?.oracleVotes ?? []) as OracleVoteLog[])
-        ];
         const bettorAccountIds = (store.bets.get(request.params.marketId) ?? []).map((bet) => bet.bettorAccountId);
         const quorumPolicy = resolveOracleQuorumPolicy(
           estimateOracleParticipantCount(market, bettorAccountIds)
@@ -267,12 +264,15 @@ export function createMarketsRouter(eventBus: ApiEventBus): Router {
         eventBus.publish("market.oracle_vote", result.vote);
         if (result.finalized) {
           eventBus.publish("market.resolved", result.finalized);
-          const uniqueVotes = deduplicateVotes([...priorVotes, result.vote]);
+          const finalizedMarket = store.markets.get(request.params.marketId);
+          const allVotes = deduplicateVotes(
+            (finalizedMarket?.oracleVotes ?? []) as OracleVoteLog[]
+          );
           const reputations = await applyOracleVoteReputation(
             request.params.marketId,
             result.finalized.resolvedOutcome,
             result.finalized.resolvedByAccountId,
-            uniqueVotes
+            allVotes
           );
           for (const attestation of reputations) {
             eventBus.publish("reputation.attested", attestation);

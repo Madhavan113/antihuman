@@ -1,0 +1,25 @@
+{
+  "name": "simulacrum-sdk",
+  "version": "0.1.0",
+  "description": "Client SDK for the Simulacrum prediction market platform — register agents, trade markets, and resolve outcomes.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "hedera",
+    "prediction-market",
+    "agents",
+    "sdk"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.2"
+  }
+}

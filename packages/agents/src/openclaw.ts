@@ -10,6 +10,10 @@ export interface OpenClawIntegrationHandlers {
   publishOrder?: (args: Record<string, unknown>) => Promise<unknown> | unknown;
   placeBet?: (args: Record<string, unknown>) => Promise<unknown> | unknown;
   resolveMarket?: (args: Record<string, unknown>) => Promise<unknown> | unknown;
+  selfAttest?: (args: Record<string, unknown>) => Promise<unknown> | unknown;
+  challengeResolution?: (args: Record<string, unknown>) => Promise<unknown> | unknown;
+  oracleVote?: (args: Record<string, unknown>) => Promise<unknown> | unknown;
+  claimWinnings?: (args: Record<string, unknown>) => Promise<unknown> | unknown;
   fetchMarkets?: () => Promise<MarketSnapshot[]> | MarketSnapshot[];
 }
 
@@ -46,6 +50,22 @@ export function createOpenClawAdapter(
 
   if (handlers.resolveMarket) {
     map.set("resolve_market", handlers.resolveMarket);
+  }
+
+  if (handlers.selfAttest) {
+    map.set("self_attest", handlers.selfAttest);
+  }
+
+  if (handlers.challengeResolution) {
+    map.set("challenge_resolution", handlers.challengeResolution);
+  }
+
+  if (handlers.oracleVote) {
+    map.set("oracle_vote", handlers.oracleVote);
+  }
+
+  if (handlers.claimWinnings) {
+    map.set("claim_winnings", handlers.claimWinnings);
   }
 
   if (handlers.fetchMarkets) {

@@ -21,9 +21,13 @@ import {
   getMarketStore,
   placeBet,
   resolveMarket,
+  submitOracleVote,
   type Market
 } from "@simulacrum/markets";
-import { getReputationStore } from "@simulacrum/reputation";
+import {
+  calculateReputationScore,
+  getReputationStore
+} from "@simulacrum/reputation";
 
 import type { ApiEventBus } from "../events.js";
 import type { AgentRegistry } from "../routes/agents.js";
@@ -242,6 +246,7 @@ export class AutonomyEngine {
       }
 
       await this.runAgentBetting(now);
+      await this.voteOnDisputedMarkets();
       await this.resolveExpiredMarkets(now);
       await this.settleResolvedMarkets();
 
@@ -524,6 +529,90 @@ export class AutonomyEngine {
     }
   }
 
+  private async voteOnDisputedMarkets(): Promise<void> {
+    const store = getMarketStore();
+    const disputed = Array.from(store.markets.values()).filter(
+      (market) => market.status === "DISPUTED" && market.selfAttestation
+    );
+
+    if (disputed.length === 0) {
+      return;
+    }
+
+    const reputationLookup = (accountId: string): number => {
+      const repStore = getReputationStore();
+      const score = calculateReputationScore(accountId, repStore.attestations);
+      return score.score;
+    };
+
+    const reputationByAccount = this.buildReputationMap();
+    const sentimentMap = this.buildSentimentMap();
+
+    for (const market of disputed) {
+      const alreadyVoted = new Set(
+        (market.oracleVotes ?? []).map((v) => v.voterAccountId)
+      );
+
+      for (const runtime of this.#runtimeAgents.values()) {
+        const accountId = runtime.wallet.accountId;
+
+        if (alreadyVoted.has(accountId)) {
+          continue;
+        }
+
+        // Use the agent's strategy to pick an outcome
+        const snapshot = toMarketSnapshot(market);
+        const decision = await runtime.agent.decideBet(snapshot, {
+          now: new Date(),
+          reputationByAccount,
+          marketSentiment: sentimentMap
+        });
+
+        const outcome = decision?.outcome ?? market.selfAttestation!.proposedOutcome;
+
+        try {
+          const result = await submitOracleVote(
+            {
+              marketId: market.id,
+              voterAccountId: accountId,
+              outcome,
+              confidence: clamp(runtime.agent.reputationScore / 100, 0.1, 1),
+              reason: `Autonomy agent ${runtime.agent.name} oracle vote`
+            },
+            {
+              client: this.getClient(runtime.wallet),
+              reputationLookup
+            }
+          );
+
+          this.#eventBus.publish("autonomy.oracle_vote", {
+            marketId: market.id,
+            agentId: runtime.agent.id,
+            outcome,
+            finalized: !!result.finalized
+          });
+
+          if (result.finalized) {
+            this.#eventBus.publish("autonomy.market.resolved", result.finalized);
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+
+          // Ineligible or already-voted errors are expected, skip silently
+          if (/ineligible|already submitted/i.test(message)) {
+            continue;
+          }
+
+          this.#eventBus.publish("autonomy.oracle_vote.error", {
+            marketId: market.id,
+            agentId: runtime.agent.id,
+            error: message
+          });
+        }
+      }
+    }
+  }
+
   private async resolveExpiredMarkets(now: Date): Promise<void> {
     const store = getMarketStore();
     const candidates = Array.from(store.markets.values()).filter(
@@ -610,6 +699,14 @@ export class AutonomyEngine {
             },
             { client: escrowClient }
           );
+
+          // Update the winning agent's in-memory bankroll to reflect their payout
+          for (const runtime of this.#runtimeAgents.values()) {
+            if (runtime.wallet.accountId === winnerAccountId) {
+              runtime.agent.adjustBankroll(claim.payoutHbar);
+              break;
+            }
+          }
 
           this.#eventBus.publish("autonomy.market.claimed", claim);
         } catch (error) {

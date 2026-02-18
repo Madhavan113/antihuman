@@ -16,6 +16,8 @@ export interface PlaceBetOptions {
   client?: Client;
   store?: MarketStore;
   deps?: Partial<PlaceBetDependencies>;
+  /** Maximum allowed bet in HBAR. Defaults to 10_000. Set to 0 to disable. */
+  maxBetHbar?: number;
 }
 
 const DEFAULT_CURVE_LIQUIDITY_HBAR = 25;
@@ -153,36 +155,28 @@ function toOddsPercentages(
 }
 
 function ensureCurveState(market: Market): CurveStateSnapshot {
+  if (!market.curveState?.sharesByOutcome) {
+    throw new MarketError(
+      `Market ${market.id} is configured as WEIGHTED_CURVE but has no curve state. ` +
+      `This indicates data corruption — the curve state should have been set during market creation.`
+    );
+  }
+
   const liquidityParameterHbar =
-    market.curveState?.liquidityParameterHbar && market.curveState.liquidityParameterHbar > 0
+    market.curveState.liquidityParameterHbar && market.curveState.liquidityParameterHbar > 0
       ? market.curveState.liquidityParameterHbar
       : DEFAULT_CURVE_LIQUIDITY_HBAR;
 
-  if (market.curveState?.sharesByOutcome) {
-    const hydrated: Record<string, number> = {};
-    for (const outcome of market.outcomes) {
-      hydrated[outcome] = Number.isFinite(market.curveState.sharesByOutcome[outcome])
-        ? market.curveState.sharesByOutcome[outcome] ?? 0
-        : 0;
-    }
-    return {
-      liquidityParameterHbar,
-      sharesByOutcome: hydrated
-    };
-  }
-
-  const seedOdds = market.currentOddsByOutcome ?? market.initialOddsByOutcome ?? fallbackOdds(market.outcomes);
-  const probabilities = normalizeProbabilities(seedOdds, market.outcomes);
-  const sharesByOutcome: Record<string, number> = {};
-
+  const hydrated: Record<string, number> = {};
   for (const outcome of market.outcomes) {
-    const probability = Math.max(0.0001, probabilities[outcome] ?? 0.0001);
-    sharesByOutcome[outcome] = Number((liquidityParameterHbar * Math.log(probability)).toFixed(8));
+    hydrated[outcome] = Number.isFinite(market.curveState.sharesByOutcome[outcome])
+      ? market.curveState.sharesByOutcome[outcome] ?? 0
+      : 0;
   }
 
   return {
     liquidityParameterHbar,
-    sharesByOutcome
+    sharesByOutcome: hydrated
   };
 }
 
@@ -272,6 +266,14 @@ export async function placeBet(
   validateNonEmptyString(input.outcome, "outcome");
   validatePositiveNumber(input.amountHbar, "amountHbar");
 
+  const maxBet = options.maxBetHbar ?? 10_000;
+
+  if (maxBet > 0 && input.amountHbar > maxBet) {
+    throw new MarketError(
+      `Bet amount ${input.amountHbar} HBAR exceeds the maximum allowed bet of ${maxBet} HBAR.`
+    );
+  }
+
   const store = getMarketStore(options.store);
   const market = store.markets.get(input.marketId);
 
@@ -318,6 +320,17 @@ export async function placeBet(
       market.liquidityModel === "WEIGHTED_CURVE"
         ? quoteCurveTrade(market, normalizedOutcome, input.amountHbar)
         : undefined;
+
+    if (
+      curveTrade &&
+      typeof input.maxPricePercent === "number" &&
+      Number.isFinite(input.maxPricePercent) &&
+      curveTrade.preTradeOdds > input.maxPricePercent
+    ) {
+      throw new MarketError(
+        `Slippage exceeded: current price ${curveTrade.preTradeOdds}% exceeds maximum acceptable price ${input.maxPricePercent}%.`
+      );
+    }
 
     const audit = await deps.submitMessage(
       market.topicId,

@@ -464,9 +464,6 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
     try {
       const store = getMarketStore();
       const market = store.markets.get(request.params.marketId);
-      const priorVotes = [
-        ...((market?.oracleVotes ?? []) as OracleVoteLog[])
-      ];
       const registeredActiveAgents = options.authService
         .listAgents()
         .filter((agent) => agent.status === "ACTIVE").length;
@@ -497,12 +494,15 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
 
       if (result.finalized) {
         options.eventBus.publish("market.resolved", result.finalized);
-        const uniqueVotes = deduplicateVotes([...priorVotes, result.vote]);
+        const finalizedMarket = store.markets.get(request.params.marketId);
+        const allVotes = deduplicateVotes(
+          (finalizedMarket?.oracleVotes ?? []) as OracleVoteLog[]
+        );
         const reputations = await applyOracleVoteReputation(
           request.params.marketId,
           result.finalized.resolvedOutcome,
           result.finalized.resolvedByAccountId,
-          uniqueVotes
+          allVotes
         );
         for (const attestation of reputations) {
           options.eventBus.publish("reputation.attested", attestation);
