@@ -15,6 +15,10 @@
     --accent-dim:   #8C5A47;
     --dither-hi:    #E8E4DF;
     --dither-lo:    #1E1C1A;
+    --status-resolved-border: #3A4A3A;
+    --status-resolved-text:   #6B8F6B;
+    --status-disputed-border: #4A3A2A;
+    --status-disputed-text:   #C4845A;
   }
 
   *, *::before, *::after { box-sizing: border-box; }
@@ -35,7 +39,6 @@
   /* CRT scanline overlay — apply .scanline-zone to a position:relative element */
   .scanline-zone {
     position: relative;
-    overflow: hidden;
   }
 
   .scanline-zone::after {
@@ -50,11 +53,7 @@
       rgba(0, 0, 0, 0.18) 3px
     );
     pointer-events: none;
-    z-index: 10;
   }
-
-  /* Hairline border utility */
-  .border-hair { border: 1px solid var(--border); }
 
   /* Label metadata style */
   .label {
@@ -71,6 +70,7 @@
     font-weight: 300;
     letter-spacing: -0.02em;
     line-height: 1.1;
+    color: var(--text-primary);
   }
 
   /* Status badge */
@@ -90,7 +90,11 @@
   }
 
   .status-badge[data-status="OPEN"]     { border-color: var(--accent-dim); color: var(--accent); }
-  .status-badge[data-status="RESOLVED"] { border-color: #3A4A3A; color: #6B8F6B; }
-  .status-badge[data-status="DISPUTED"] { border-color: #4A3A2A; color: #C4845A; }
+  .status-badge[data-status="RESOLVED"] { border-color: var(--status-resolved-border); color: var(--status-resolved-text); }
+  .status-badge[data-status="DISPUTED"] { border-color: var(--status-disputed-border); color: var(--status-disputed-text); }
   .status-badge[data-status="CLOSED"]   { border-color: var(--border); color: var(--text-dim); }
+}
+
+@layer utilities {
+  .border-hair { border: 1px solid var(--border); }
 }

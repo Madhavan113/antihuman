@@ -14,6 +14,8 @@ export default {
         dim: 'var(--text-dim)',
         accent: 'var(--accent)',
         'accent-dim': 'var(--accent-dim)',
+        'dither-hi': 'var(--dither-hi)',
+        'dither-lo': 'var(--dither-lo)',
       },
       fontFamily: {
         sans: ['InterVariable', 'Inter', 'system-ui', 'sans-serif'],
