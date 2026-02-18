@@ -129,13 +129,13 @@ export function chainLinks(
 
     if (horizontal) {
       // Ring lies in XZ plane; chain flows along X
-      pos[i * 3]     = cx + offset * 0.7 + tx
+      pos[i * 3]     = cx + offset + tx
       pos[i * 3 + 1] = cy + ty
       pos[i * 3 + 2] = cz + tz
     } else {
       // Ring stands in YZ plane; chain flows along Y
       pos[i * 3]     = cx + ty
-      pos[i * 3 + 1] = cy + offset * 0.7 + tx
+      pos[i * 3 + 1] = cy + offset + tx
       pos[i * 3 + 2] = cz + tz
     }
   }
