@@ -13,6 +13,7 @@ export function Nav() {
 
   return (
     <nav
+      aria-label="Main navigation"
       className="fixed left-0 top-0 h-screen flex flex-col border-r border-hair"
       style={{ width: 220, background: 'var(--bg-surface)' }}
     >
@@ -26,6 +27,8 @@ export function Nav() {
         </span>
         {/* WS status dot */}
         <span
+          role="status"
+          aria-label={`WebSocket ${status}`}
           title={status}
           style={{
             width: 6, height: 6, borderRadius: '50%',
