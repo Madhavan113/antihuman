@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 interface SparklineProps {
   values: number[]
   width?: number
@@ -6,6 +8,10 @@ interface SparklineProps {
 }
 
 export function Sparkline({ values, width = 120, height = 32, className = '' }: SparklineProps) {
+  const uid = useId()
+  const fadeId = `sparklFade-${uid}`
+  const maskId = `sparklMask-${uid}`
+
   if (values.length < 2) return null
 
   const max = Math.max(...values)
@@ -29,13 +35,13 @@ export function Sparkline({ values, width = 120, height = 32, className = '' }: 
       viewBox={`0 0 ${width} ${height}`}
     >
       <defs>
-        <linearGradient id="sparklFade" x1="0" x2="1" y1="0" y2="0">
+        <linearGradient id={fadeId} x1="0" x2="1" y1="0" y2="0">
           <stop offset="0%" stopColor="white" stopOpacity="1" />
           <stop offset={`${(fadeStart / width) * 100}%`} stopColor="white" stopOpacity="1" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </linearGradient>
-        <mask id="sparklMask">
-          <rect width={width} height={height} fill="url(#sparklFade)" />
+        <mask id={maskId}>
+          <rect width={width} height={height} fill={`url(#${fadeId})`} />
         </mask>
       </defs>
       <path
@@ -43,7 +49,7 @@ export function Sparkline({ values, width = 120, height = 32, className = '' }: 
         fill="none"
         stroke="var(--accent)"
         strokeWidth="1.5"
-        mask="url(#sparklMask)"
+        mask={`url(#${maskId})`}
       />
     </svg>
   )

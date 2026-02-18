@@ -24,14 +24,15 @@ export function Drawer({ open, onClose, children, width = 480 }: DrawerProps) {
     prevOpen.current = open
   }, [open])
 
-  // Close on Escape
+  // Close on Escape — only when drawer is open
   useEffect(() => {
+    if (!open) return
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
-  }, [onClose])
+  }, [open, onClose])
 
   if (!open && !revealing) return null
 

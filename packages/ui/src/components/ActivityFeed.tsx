@@ -24,7 +24,7 @@ interface ActivityFeedProps {
 export function ActivityFeed({ onEventClick, className = '' }: ActivityFeedProps) {
   const [events, setEvents] = useState<WsEvent[]>([])
   const { subscribe } = useWebSocket()
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const topRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     return subscribe((event) => {
@@ -36,7 +36,7 @@ export function ActivityFeed({ onEventClick, className = '' }: ActivityFeedProps
   }, [subscribe])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    topRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [events.length])
 
   if (events.length === 0) {
@@ -49,9 +49,10 @@ export function ActivityFeed({ onEventClick, className = '' }: ActivityFeedProps
 
   return (
     <div className={`flex flex-col gap-0 overflow-y-auto ${className}`}>
-      {events.map((event, i) => (
+      <div ref={topRef} />
+      {events.map((event) => (
         <button
-          key={i}
+          key={`${event.timestamp}-${event.type}`}
           onClick={() => onEventClick?.(event)}
           className="flex items-center gap-3 px-4 py-2.5 text-left hover:bg-raised border-b transition-colors"
           style={{ borderColor: 'var(--border)', background: 'transparent', cursor: 'pointer' }}
@@ -70,7 +71,6 @@ export function ActivityFeed({ onEventClick, className = '' }: ActivityFeedProps
           </span>
         </button>
       ))}
-      <div ref={bottomRef} />
     </div>
   )
 }

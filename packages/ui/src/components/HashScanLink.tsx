@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface HashScanLinkProps {
   id: string
@@ -8,11 +8,15 @@ interface HashScanLinkProps {
 
 export function HashScanLink({ id, url, label }: HashScanLinkProps) {
   const [copied, setCopied] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
   function copy() {
     void navigator.clipboard.writeText(id)
     setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => setCopied(false), 1500)
   }
 
   const display = label ?? (id.length > 20 ? `${id.slice(0, 8)}…${id.slice(-6)}` : id)
