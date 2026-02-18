@@ -115,7 +115,7 @@ export function chainLinks(
   const numLinks = 6
   const R = 0.22 * scale   // ring radius
   const r = 0.055 * scale  // tube radius
-  const spacing = R * 1.55
+  const spacing = R * 1.1
 
   for (let i = 0; i < count; i++) {
     const linkIdx = Math.floor(Math.random() * numLinks)
@@ -128,11 +128,13 @@ export function chainLinks(
     const offset = (linkIdx - (numLinks - 1) / 2) * spacing
 
     if (horizontal) {
+      // Ring lies in XZ plane; chain flows along X
       pos[i * 3]     = cx + offset * 0.7 + tx
-      pos[i * 3 + 1] = cy + offset * 0.7 + ty
+      pos[i * 3 + 1] = cy + ty
       pos[i * 3 + 2] = cz + tz
     } else {
-      pos[i * 3]     = cx + offset * 0.7 + ty
+      // Ring stands in YZ plane; chain flows along Y
+      pos[i * 3]     = cx + ty
       pos[i * 3 + 1] = cy + offset * 0.7 + tx
       pos[i * 3 + 2] = cz + tz
     }
