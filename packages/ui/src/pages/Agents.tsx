@@ -100,10 +100,10 @@ export function Agents() {
   const sorted = [...agents].sort((a, b) => b.reputationScore - a.reputationScore)
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen overflow-hidden">
       <PageHeader title="Agents" meta={`${agents.length} registered`} />
 
-      <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 120px)' }}>
+      <div className="flex flex-1 overflow-hidden">
         {/* Agent grid (65%) */}
         <section
           className="flex-1 overflow-y-auto px-8 py-6"

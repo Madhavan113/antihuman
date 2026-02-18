@@ -123,9 +123,10 @@ export function MarketDetail({ marketId }: MarketDetailProps) {
               ))}
               <div className="flex items-center justify-between">
                 <span className="label" style={{ fontSize: 10 }}>Creator</span>
-                <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
-                  {market.creatorAccountId}
-                </span>
+                <HashScanLink
+                  id={market.creatorAccountId}
+                  url={`https://hashscan.io/testnet/account/${market.creatorAccountId}`}
+                />
               </div>
               {market.resolvedOutcome && (
                 <div className="flex items-center justify-between">
