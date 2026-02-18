@@ -1,0 +1,124 @@
+{
+  "agents": {
+    "16266573-9a1e-4738-86da-9e2136f759d5": {
+      "id": "16266573-9a1e-4738-86da-9e2136f759d5",
+      "name": "clawd-bot-1",
+      "authPublicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEArKkB4F+ClwTA4xtA2qS2GjGOysBEM8tAvLnpG37aNCo=\n-----END PUBLIC KEY-----",
+      "walletAccountId": "0.0.7976127",
+      "status": "ACTIVE",
+      "createdAt": "2026-02-18T23:42:19.473Z",
+      "updatedAt": "2026-02-18T23:42:19.473Z"
+    },
+    "2cb13a50-2912-41dc-961b-e6f6f78edabe": {
+      "id": "2cb13a50-2912-41dc-961b-e6f6f78edabe",
+      "name": "madbot",
+      "authPublicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAEVFpe5fX+QZBElnf9QfC+jqIaBi0Yr1vXzkHcxKdqWo=\n-----END PUBLIC KEY-----",
+      "walletAccountId": "0.0.7976150",
+      "status": "ACTIVE",
+      "createdAt": "2026-02-18T23:44:33.272Z",
+      "updatedAt": "2026-02-18T23:44:33.305Z",
+      "lastLoginAt": "2026-02-18T23:44:33.305Z"
+    },
+    "4f4ba491-5c84-417d-8078-c1bbed8361be": {
+      "id": "4f4ba491-5c84-417d-8078-c1bbed8361be",
+      "name": "madbot-test-2",
+      "authPublicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAEVFpe5fX+QZBElnf9QfC+jqIaBi0Yr1vXzkHcxKdqWo=\n-----END PUBLIC KEY-----",
+      "walletAccountId": "0.0.7976152",
+      "status": "ACTIVE",
+      "createdAt": "2026-02-18T23:44:41.923Z",
+      "updatedAt": "2026-02-18T23:44:41.950Z",
+      "lastLoginAt": "2026-02-18T23:44:41.950Z"
+    },
+    "ba843077-6f37-4ba8-8f2a-1baa55bfd2da": {
+      "id": "ba843077-6f37-4ba8-8f2a-1baa55bfd2da",
+      "name": "madbot-fire-simulacrum",
+      "authPublicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAnwKDS23zSjE5kA838Fy8xusFCxdHyjwsoIQ8n/YXptg=\n-----END PUBLIC KEY-----",
+      "walletAccountId": "0.0.7976183",
+      "status": "ACTIVE",
+      "createdAt": "2026-02-18T23:47:28.096Z",
+      "updatedAt": "2026-02-18T23:47:28.120Z",
+      "lastLoginAt": "2026-02-18T23:47:28.120Z"
+    }
+  },
+  "wallets": {
+    "16266573-9a1e-4738-86da-9e2136f759d5": {
+      "accountId": "0.0.7976127",
+      "privateKeyType": "der",
+      "privateKeyEncrypted": {
+        "iv": "LMTD2jU2UgWwmFwb",
+        "authTag": "evYE2edVzepLy19VVB1PfQ==",
+        "ciphertext": "MLE8CJELjlQi8WzZRr5nMgoyPS6huhR1fRvJ8HCwKmVdHvlNJFRvKMZVPuhLjYLB3Oee8TpXvo6sJNQGK5ZgT91MZ7u50d7RKE1OvgOYpoP58bjvbRRHO84XVdw7JWRr"
+      },
+      "createdAt": "2026-02-18T23:42:19.473Z",
+      "updatedAt": "2026-02-18T23:42:19.473Z"
+    },
+    "2cb13a50-2912-41dc-961b-e6f6f78edabe": {
+      "accountId": "0.0.7976150",
+      "privateKeyType": "der",
+      "privateKeyEncrypted": {
+        "iv": "YVQdeUdWA26XudaY",
+        "authTag": "OnDFLq2CBX/IjtS93eO5dA==",
+        "ciphertext": "ccnF1QYowErT9gsQE55rpyQooovJOxolNmU0GmzxqhcnlwozRdW/1Xx7/iLsjUSm6Iq3PsZLswlRsT6nPhY9MyIpeQTbqv+MvCmQnYr1KLwsH7Fbbk2sSXvFdDTtfeSs"
+      },
+      "createdAt": "2026-02-18T23:44:33.272Z",
+      "updatedAt": "2026-02-18T23:44:33.272Z"
+    },
+    "4f4ba491-5c84-417d-8078-c1bbed8361be": {
+      "accountId": "0.0.7976152",
+      "privateKeyType": "der",
+      "privateKeyEncrypted": {
+        "iv": "3MAX5/rIxsRdYj7A",
+        "authTag": "4CZDBuxDJKw/LUd24MXImQ==",
+        "ciphertext": "oIPfdqyLfIW/zdju6aD9XTN7007tbRIjpM4SCwCc1LsaWM5sBlO8ol9b5GkqcA5/ycuwZpUb2P3Bc5khP89zCzyqYXuY8Ythv1wNgjZkQ4GfcPBGyT8pAFYR1cqzRvVD"
+      },
+      "createdAt": "2026-02-18T23:44:41.923Z",
+      "updatedAt": "2026-02-18T23:44:41.923Z"
+    },
+    "ba843077-6f37-4ba8-8f2a-1baa55bfd2da": {
+      "accountId": "0.0.7976183",
+      "privateKeyType": "der",
+      "privateKeyEncrypted": {
+        "iv": "bS7S+K1fzB/RUdEZ",
+        "authTag": "iXneHE1JfUSkEf5vMJNYyw==",
+        "ciphertext": "1OhYqTvkfwOsVMMicIy0jQuyvhClxNJF7b6b8TBHaDUOIRjsveIc2KiM+nfYc0xZtWjdgQJC0N9YKzgK4Hj6SY2K7GJ68y3CCgsl6SsnliJsPUbD7VOBkOyS9KZ/49sp"
+      },
+      "createdAt": "2026-02-18T23:47:28.096Z",
+      "updatedAt": "2026-02-18T23:47:28.096Z"
+    }
+  },
+  "challenges": {
+    "ea78f4b5-d7e1-451c-8eda-c08c114822b6": {
+      "id": "ea78f4b5-d7e1-451c-8eda-c08c114822b6",
+      "agentId": "ba843077-6f37-4ba8-8f2a-1baa55bfd2da",
+      "nonce": "b07c8f9cae083cbfc3288d8c7cb24406",
+      "createdAt": "2026-02-18T23:47:28.115Z",
+      "expiresAt": "2026-02-18T23:52:28.115Z",
+      "usedAt": "2026-02-18T23:47:28.120Z"
+    }
+  },
+  "faucet": {
+    "totalDispensedHbar": 97.64640952,
+    "byDate": {
+      "2026-02-18": 97.64640952
+    },
+    "byAgentId": {
+      "16266573-9a1e-4738-86da-9e2136f759d5": {
+        "totalDispensedHbar": 20,
+        "refillCount": 0
+      },
+      "2cb13a50-2912-41dc-961b-e6f6f78edabe": {
+        "totalDispensedHbar": 20,
+        "refillCount": 0
+      },
+      "4f4ba491-5c84-417d-8078-c1bbed8361be": {
+        "totalDispensedHbar": 20,
+        "refillCount": 0
+      },
+      "ba843077-6f37-4ba8-8f2a-1baa55bfd2da": {
+        "totalDispensedHbar": 37.64640952,
+        "refillCount": 1,
+        "lastRefillAt": "2026-02-18T23:47:51.937Z"
+      }
+    }
+  }
+}
