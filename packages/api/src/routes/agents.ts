@@ -10,6 +10,7 @@ import {
 } from "@simulacrum/agents";
 import { calculateReputationScore, getReputationStore } from "@simulacrum/reputation";
 
+import { getAgentPlatformStore } from "../agent-platform/store.js";
 import type { ApiEventBus } from "../events.js";
 import { validateBody } from "../middleware/validation.js";
 
@@ -78,20 +79,41 @@ export function createAgentsRouter(registry: AgentRegistry, eventBus: ApiEventBu
 
   router.get("/", (_request, response) => {
     const reputationStore = getReputationStore();
-    response.json({
-      agents: registry.all().map((agent) => ({
-        id: agent.id,
-        name: agent.name,
-        accountId: agent.accountId,
-        bankrollHbar: agent.bankrollHbar,
-        reputationScore: Number(
-          calculateReputationScore(agent.accountId, reputationStore.attestations, {
-            baseline: agent.reputationScore
-          }).score.toFixed(2)
-        ),
-        strategy: agent.strategy.name
-      }))
-    });
+
+    const simulationAgents = registry.all().map((agent) => ({
+      id: agent.id,
+      name: agent.name,
+      accountId: agent.accountId,
+      walletAccountId: agent.accountId,
+      bankrollHbar: agent.bankrollHbar,
+      reputationScore: Number(
+        calculateReputationScore(agent.accountId, reputationStore.attestations, {
+          baseline: agent.reputationScore
+        }).score.toFixed(2)
+      ),
+      strategy: agent.strategy.name,
+      origin: "simulation" as const
+    }));
+
+    const platformStore = getAgentPlatformStore();
+    const platformAgents = Object.values(platformStore.agents).map((agent) => ({
+      id: agent.id,
+      name: agent.name,
+      accountId: agent.walletAccountId,
+      walletAccountId: agent.walletAccountId,
+      bankrollHbar: 0,
+      reputationScore: Number(
+        calculateReputationScore(agent.walletAccountId, reputationStore.attestations, {
+          baseline: 50
+        }).score.toFixed(2)
+      ),
+      strategy: "autonomous",
+      status: agent.status,
+      createdAt: agent.createdAt,
+      origin: "platform" as const
+    }));
+
+    response.json({ agents: [...platformAgents, ...simulationAgents] });
   });
 
   router.post("/", validateBody(createAgentSchema), (request, response) => {
