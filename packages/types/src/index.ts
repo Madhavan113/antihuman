@@ -139,10 +139,14 @@ export interface Agent {
   id: string;
   name: string;
   accountId: string;
+  walletAccountId?: string;
   bankrollHbar: number;
   reputationScore: number;
   strategy: string;
   mode?: AgentMode;
+  origin?: "simulation" | "platform";
+  status?: string;
+  createdAt?: string;
 }
 
 // ── Reputation types ──

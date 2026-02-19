@@ -7,6 +7,8 @@ interface AgentCardProps {
 }
 
 export function AgentCard({ agent, rank, onClick }: AgentCardProps) {
+  const isPlatform = agent.origin === 'platform'
+
   return (
     <button
       onClick={onClick}
@@ -29,28 +31,60 @@ export function AgentCard({ agent, rank, onClick }: AgentCardProps) {
             </span>
           )}
           <span className="text-sm font-medium text-primary truncate">{agent.name}</span>
+          {isPlatform && (
+            <span
+              className="label"
+              style={{
+                fontSize: 9,
+                background: 'rgba(130, 71, 229, 0.12)',
+                color: '#8247e5',
+                padding: '1px 6px',
+                borderRadius: 4,
+                letterSpacing: '0.04em',
+                flexShrink: 0,
+              }}
+            >
+              HEDERA
+            </span>
+          )}
         </div>
 
         {/* Account ID */}
         <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
-          {agent.accountId}
+          {agent.walletAccountId ?? agent.accountId}
         </span>
 
-        {/* Strategy badge */}
-        <span
-          className="label"
-          style={{
-            fontSize: 10,
-            background: 'var(--bg-raised)',
-            border: '1px solid var(--border)',
-            padding: '2px 6px',
-            borderRadius: 4,
-            display: 'inline-block',
-            width: 'fit-content',
-          }}
-        >
-          {agent.strategy}
-        </span>
+        {/* Strategy + origin badges */}
+        <div className="flex items-center gap-2">
+          <span
+            className="label"
+            style={{
+              fontSize: 10,
+              background: 'var(--bg-raised)',
+              border: '1px solid var(--border)',
+              padding: '2px 6px',
+              borderRadius: 4,
+              display: 'inline-block',
+              width: 'fit-content',
+            }}
+          >
+            {agent.strategy}
+          </span>
+          {isPlatform && agent.status && (
+            <span
+              className="label"
+              style={{
+                fontSize: 10,
+                background: agent.status === 'ACTIVE' ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-raised)',
+                color: agent.status === 'ACTIVE' ? '#22c55e' : 'var(--text-dim)',
+                padding: '2px 6px',
+                borderRadius: 4,
+              }}
+            >
+              {agent.status}
+            </span>
+          )}
+        </div>
 
         {/* Rep bar */}
         <div className="flex flex-col gap-1 mt-1">
@@ -68,10 +102,23 @@ export function AgentCard({ agent, rank, onClick }: AgentCardProps) {
           </div>
         </div>
 
-        {/* Bankroll */}
+        {/* Bankroll / On-chain link */}
         <div className="flex items-center justify-between mt-1">
           <span className="label" style={{ fontSize: 10 }}>BANKROLL</span>
-          <span className="font-mono text-xs text-primary">{agent.bankrollHbar.toFixed(2)} ℏ</span>
+          {isPlatform ? (
+            <a
+              href={`https://hashscan.io/testnet/account/${agent.walletAccountId ?? agent.accountId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-xs"
+              style={{ color: 'var(--accent)' }}
+              onClick={e => e.stopPropagation()}
+            >
+              view on HashScan
+            </a>
+          ) : (
+            <span className="font-mono text-xs text-primary">{agent.bankrollHbar.toFixed(2)} &#8463;</span>
+          )}
         </div>
       </div>
     </button>
