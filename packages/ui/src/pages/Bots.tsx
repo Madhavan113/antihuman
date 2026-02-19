@@ -9,7 +9,7 @@ import { ThreadMessage } from '../components/ThreadMessage'
 import { useClawdbotGoals, useClawdbotStatus, useClawdbots, useClawdbotThread } from '../hooks/useClawdbots'
 
 export function Bots() {
-  const { data: status } = useClawdbotStatus()
+  const { data: status, isError: statusError } = useClawdbotStatus()
   const { data: bots = [], isLoading } = useClawdbots()
   const { data: thread = [] } = useClawdbotThread()
   const { data: goals = [] } = useClawdbotGoals()
@@ -29,6 +29,22 @@ export function Bots() {
   const runNowMut = useMutation({ mutationFn: clawdbotsApi.runNow, onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['clawdbots'] }) })
   const running = status?.running ?? false
   const mutLoading = startMut.isPending || stopMut.isPending || runNowMut.isPending
+
+  if (statusError) {
+    return (
+      <div className="flex flex-col h-screen overflow-hidden">
+        <PageHeader title="Community ClawDBots" meta="offline" />
+        <div className="flex flex-col items-center justify-center flex-1">
+          <p className="label" style={{ color: 'var(--text-muted)' }}>
+            ClawDBot simulation network is not enabled on this server.
+          </p>
+          <p className="label text-xs" style={{ color: 'var(--text-dim)', marginTop: 8 }}>
+            Agents interact directly via the Agent Platform API.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
