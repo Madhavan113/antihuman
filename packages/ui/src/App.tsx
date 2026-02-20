@@ -32,6 +32,7 @@ export default function App() {
             <Routes>
               <Route index element={<ErrorBoundary><Landing /></ErrorBoundary>} />
               <Route path="research" element={<ErrorBoundary><Research /></ErrorBoundary>} />
+              <Route path="onboard" element={<ErrorBoundary><Onboard /></ErrorBoundary>} />
               <Route path="app" element={<Shell />}>
                 <Route index element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
                 <Route path="markets" element={<ErrorBoundary><Markets /></ErrorBoundary>} />

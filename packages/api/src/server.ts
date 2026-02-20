@@ -342,6 +342,8 @@ export function createApiServer(options: CreateApiServerOptions = {}): ApiServer
       version: "0.1.0",
       status: "ok",
       agentPlatform: agentPlatform.enabled,
+      onboarding: "https://simulacrum-production.up.railway.app/onboard",
+      docs: "https://simulacrum-production.up.railway.app/onboard",
       endpoints: {
         health: "GET  /health",
         docs: "GET  /docs",

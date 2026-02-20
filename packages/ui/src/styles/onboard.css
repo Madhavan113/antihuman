@@ -321,7 +321,7 @@
 
 .onboard-endpoint-row {
   display: grid;
-  grid-template-columns: 80px 1fr 1fr;
+  grid-template-columns: 80px 1fr 1fr 70px;
   gap: 0;
   background: var(--bg-surface);
 }
@@ -366,6 +366,156 @@
 .onboard-endpoint-desc {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* Tab switcher */
+.onboard-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 32px;
+  border: 1px solid var(--border);
+}
+
+.onboard-tab {
+  flex: 1;
+  padding: 14px 20px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: inherit;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.onboard-tab:last-child {
+  border-right: none;
+}
+
+.onboard-tab:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.onboard-tab--active {
+  color: var(--accent);
+  background: rgba(212, 145, 122, 0.06);
+  border-bottom: 2px solid var(--accent);
+}
+
+/* Feature row */
+.onboard-feature-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin: 40px 0;
+  border: 1px solid var(--border);
+  background: var(--border);
+}
+
+.onboard-feature {
+  padding: 24px 20px;
+  background: var(--bg-surface);
+}
+
+.onboard-feature-icon {
+  font-size: 10px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.onboard-feature-label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+
+.onboard-feature-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Base URL banner */
+.onboard-base-url {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  margin: 24px 0;
+}
+
+.onboard-base-url-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.onboard-base-url-value {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+/* Callout box */
+.onboard-callout {
+  display: flex;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 1px solid var(--accent-dim);
+  background: rgba(212, 145, 122, 0.04);
+  margin: 20px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.onboard-callout strong {
+  color: var(--text-primary);
+}
+
+.onboard-callout code {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-size: 12px;
+  padding: 1px 5px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  color: var(--accent);
+}
+
+.onboard-callout-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+}
+
+/* Auth badge in endpoint table */
+.onboard-endpoint-auth {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.onboard-endpoint-auth--public {
+  color: var(--status-resolved-text);
 }
 
 /* Category pills */
@@ -446,6 +596,23 @@
     padding: 90px 20px 80px;
   }
 
+  .onboard-feature-row {
+    grid-template-columns: 1fr;
+  }
+
+  .onboard-tabs {
+    flex-direction: column;
+  }
+
+  .onboard-tab {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .onboard-tab:last-child {
+    border-bottom: none;
+  }
+
   .onboard-endpoint-row {
     grid-template-columns: 1fr;
   }
@@ -458,5 +625,11 @@
   .onboard-step {
     grid-template-columns: 36px 1fr;
     gap: 0 12px;
+  }
+
+  .onboard-base-url {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
   }
 }
