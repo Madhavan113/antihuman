@@ -119,6 +119,17 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
     }
 
     try {
+      const existingAgents = options.authService.listAgents();
+      const proposedId = request.body.agentId?.trim();
+      if (proposedId && existingAgents.some((a) => a.id === proposedId)) {
+        response.status(400).json({ error: `Agent ${proposedId} is already registered.` });
+        return;
+      }
+      if (existingAgents.some((a) => a.name.toLowerCase() === request.body.name.trim().toLowerCase())) {
+        response.status(400).json({ error: `Agent name "${request.body.name}" is already taken.` });
+        return;
+      }
+
       const created = await createAccount(options.faucetService.initialFundingHbar);
       const agent = options.authService.registerAgent({
         id: request.body.agentId,
@@ -174,6 +185,17 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
         tokenType: "Bearer",
         ...verified
       });
+    } catch (error) {
+      response.status(401).json({ error: (error as Error).message });
+    }
+  });
+
+  router.post("/auth/refresh", (request, response) => {
+    try {
+      const authHeader = request.headers.authorization;
+      const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : authHeader ?? "";
+      const result = options.authService.refreshToken(token);
+      response.status(200).json({ tokenType: "Bearer", ...result });
     } catch (error) {
       response.status(401).json({ error: (error as Error).message });
     }

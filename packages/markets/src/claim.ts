@@ -80,7 +80,10 @@ export async function claimWinnings(
     totalPool += stake;
 
     if (bet.outcome === market.resolvedOutcome) {
-      const winningStake = useCurveShares ? toScaledShares(bet.curveSharesPurchased ?? bet.amountHbar) : stake;
+      const winningStake =
+        useCurveShares && Number.isFinite(bet.curveSharesPurchased) && (bet.curveSharesPurchased ?? 0) > 0
+          ? toScaledShares(bet.curveSharesPurchased!)
+          : stake;
       winningPool += winningStake;
 
       if (bet.bettorAccountId === input.accountId) {

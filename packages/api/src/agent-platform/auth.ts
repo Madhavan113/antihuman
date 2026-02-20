@@ -155,17 +155,28 @@ export class AgentAuthService {
 
   constructor(options: AgentAuthServiceOptions = {}) {
     this.#store = getAgentPlatformStore(options.store);
-    this.#walletStore = new EncryptedAgentWalletStore(
+
+    const walletSecret =
       options.walletStoreSecret ??
-        process.env.AGENT_WALLET_STORE_SECRET ??
-        process.env.HEDERA_KEYSTORE_SECRET ??
-        "simulacrum-agent-wallet-store"
-    );
-    this.#jwtSecret =
+      process.env.AGENT_WALLET_STORE_SECRET ??
+      process.env.HEDERA_KEYSTORE_SECRET;
+    if (!walletSecret) {
+      throw new AgentAuthError(
+        "Missing wallet store secret. Set AGENT_WALLET_STORE_SECRET or HEDERA_KEYSTORE_SECRET."
+      );
+    }
+    this.#walletStore = new EncryptedAgentWalletStore(walletSecret);
+
+    const jwtSecret =
       options.jwtSecret ??
       process.env.AGENT_JWT_SECRET ??
-      process.env.SIMULACRUM_API_KEY ??
-      "simulacrum-agent-jwt";
+      process.env.SIMULACRUM_API_KEY;
+    if (!jwtSecret) {
+      throw new AgentAuthError(
+        "Missing JWT secret. Set AGENT_JWT_SECRET or SIMULACRUM_API_KEY."
+      );
+    }
+    this.#jwtSecret = jwtSecret;
     const envJwtTtl = Number(process.env.AGENT_JWT_TTL_SECONDS);
     const resolvedJwtTtl =
       options.jwtTtlSeconds ?? (Number.isFinite(envJwtTtl) ? envJwtTtl : DEFAULT_JWT_TTL_SECONDS);
@@ -388,6 +399,23 @@ export class AgentAuthService {
     return claims as AgentJwtClaims;
   }
 
+  refreshToken(currentToken: string): VerifyChallengeResult {
+    const claims = this.verifyAccessToken(currentToken);
+    const now = this.#now();
+    const remainingSeconds = claims.exp - Math.floor(now.getTime() / 1000);
+    if (remainingSeconds > this.#jwtTtlSeconds) {
+      throw new AgentAuthError("Token is not yet eligible for refresh.");
+    }
+    const newClaims = this.createClaims(claims.sub, claims.walletAccountId, now);
+    const token = this.signJwt(newClaims);
+    return {
+      token,
+      agentId: newClaims.sub,
+      walletAccountId: newClaims.walletAccountId,
+      expiresAt: new Date(newClaims.exp * 1000).toISOString()
+    };
+  }
+
   getWallet(agentId: string): AgentWalletCredentials {
     const wallet = this.#store.wallets[agentId];
 
@@ -405,6 +433,15 @@ export class AgentAuthService {
 
     if (cached) {
       return cached;
+    }
+
+    const MAX_CLIENT_CACHE_SIZE = 100;
+    if (this.#clientCache.size >= MAX_CLIENT_CACHE_SIZE) {
+      const oldest = this.#clientCache.keys().next().value;
+      if (oldest !== undefined) {
+        this.#clientCache.get(oldest)?.close();
+        this.#clientCache.delete(oldest);
+      }
     }
 
     const client = createHederaClient({

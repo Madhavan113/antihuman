@@ -440,6 +440,7 @@ export class ClawdbotNetwork {
   readonly #clientCache = new Map<string, HederaClient>();
   readonly #thread: ClawdbotMessage[] = [];
   readonly #goalsByBotId = new Map<string, ClawdbotGoal>();
+  readonly #consecutiveFailures = new Map<string, number>();
   readonly #hostedControl = new Map<string, HostedBotControl>();
   #eventSubscription: (() => void) | null = null;
   readonly #activeDisputeBroadcasts = new Set<string>();
@@ -2260,8 +2261,8 @@ export class ClawdbotNetwork {
       );
 
       if (relevant.length > 0) {
-        const avg = relevant.reduce((sum, attestation) => sum + attestation.scoreDelta, 0) / relevant.length;
-        map[runtime.wallet.accountId] = clamp(50 + avg, 0, 100);
+        const total = relevant.reduce((sum, attestation) => sum + attestation.scoreDelta, 0);
+        map[runtime.wallet.accountId] = clamp(50 + total, 0, 100);
       }
     }
 
@@ -2302,18 +2303,29 @@ export class ClawdbotNetwork {
         continue;
       }
 
+      const failures = this.#consecutiveFailures.get(runtime.agent.id) ?? 0;
+      if (failures >= 3) {
+        const skipTicks = Math.min(failures, 10);
+        if (this.#tickCount % skipTicks !== 0) {
+          continue;
+        }
+      }
+
       const fetched = await runtime.adapter.handleToolCall({
         name: "fetch_markets",
         args: {}
       });
       const markets = (Array.isArray(fetched) ? fetched : []) as MarketSnapshot[];
-      const goal = await this.ensureGoal(runtime, markets, reputationByAccount, marketSentiment);
+      const previousGoal = this.#goalsByBotId.get(runtime.agent.id);
+      const lastFailure = previousGoal?.status === "FAILED" ? previousGoal : undefined;
+      const goal = await this.ensureGoal(runtime, markets, reputationByAccount, marketSentiment, lastFailure);
       const action = await this.cognitionFor(runtime).decideAction({
         goal,
         bot: runtime.agent,
         markets,
         reputationByAccount,
-        marketSentiment
+        marketSentiment,
+        lastFailedGoal: lastFailure
       });
 
       this.#eventBus.publish("clawdbot.goal.updated", {
@@ -2340,12 +2352,15 @@ export class ClawdbotNetwork {
           completedAt
         };
         this.#goalsByBotId.set(runtime.agent.id, completed);
+        this.#consecutiveFailures.delete(runtime.agent.id);
         this.#eventBus.publish("clawdbot.goal.completed", {
           botId: runtime.agent.id,
           goal: completed,
           actionType: action.type
         });
       } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`[clawdbot] Goal failed for ${runtime.agent.name}: ${message}`);
         const failedAt = new Date().toISOString();
         const failed: ClawdbotGoal = {
           ...goal,
@@ -2354,6 +2369,7 @@ export class ClawdbotNetwork {
           error: error instanceof Error ? error.message : String(error)
         };
         this.#goalsByBotId.set(runtime.agent.id, failed);
+        this.#consecutiveFailures.set(runtime.agent.id, (this.#consecutiveFailures.get(runtime.agent.id) ?? 0) + 1);
         this.#eventBus.publish("clawdbot.goal.failed", {
           botId: runtime.agent.id,
           goal: failed
@@ -2388,7 +2404,8 @@ export class ClawdbotNetwork {
     runtime: RuntimeBot,
     markets: MarketSnapshot[],
     reputationByAccount?: Record<string, number>,
-    marketSentiment?: MarketSentimentMap
+    marketSentiment?: MarketSentimentMap,
+    lastFailedGoal?: ClawdbotGoal
   ): Promise<ClawdbotGoal> {
     const existing = this.#goalsByBotId.get(runtime.agent.id);
 
@@ -2400,7 +2417,8 @@ export class ClawdbotNetwork {
       bot: runtime.agent,
       markets,
       reputationByAccount,
-      marketSentiment
+      marketSentiment,
+      lastFailedGoal
     });
     const inProgress: ClawdbotGoal = {
       ...created,

@@ -22,11 +22,27 @@ export function createContrarianStrategy(options: ContrarianStrategyOptions = {}
 
   return {
     name: "contrarian",
-    decide(agent: BaseAgent, market: MarketSnapshot, context: AgentContext): BetDecision {
-      const sentiment = context.marketSentiment[market.id] ?? {};
+    decide(agent: BaseAgent, market: MarketSnapshot, context: AgentContext): BetDecision | null {
+      const sentiment = context.marketSentiment[market.id];
+      if (!sentiment || Object.keys(sentiment).length === 0) {
+        return null;
+      }
+
+      const values = Object.values(sentiment);
+      const maxSentiment = Math.max(...values);
+      const minSentiment = Math.min(...values);
+      if (maxSentiment - minSentiment < 0.1) {
+        return null;
+      }
+
       const outcome = leastPopularOutcome(market, sentiment);
-      const antiConsensus = 1 - Math.min(1, (sentiment[outcome] ?? 0.5));
+      const antiConsensus = 1 - Math.min(1, (sentiment[outcome] ?? 0));
       const confidence = Math.max(0.45, antiConsensus);
+
+      if (agent.bankrollHbar < minStake) {
+        return null;
+      }
+
       const amountHbar = Math.max(
         minStake,
         Number((agent.bankrollHbar * maxStakePct * confidence).toFixed(2))

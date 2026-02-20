@@ -88,9 +88,9 @@ export function computeImpliedOdds(input: ComputeImpliedOddsInput): Record<strin
 
   const normalizedResolvedOutcome = resolvedOutcome?.trim().toUpperCase()
 
-  if (normalizedResolvedOutcome && outcomes.includes(normalizedResolvedOutcome)) {
+  if (normalizedResolvedOutcome && outcomes.some((o) => o.toUpperCase() === normalizedResolvedOutcome)) {
     return Object.fromEntries(
-      outcomes.map((outcome) => [outcome, outcome === normalizedResolvedOutcome ? 100 : 0]),
+      outcomes.map((outcome) => [outcome, outcome.toUpperCase() === normalizedResolvedOutcome ? 100 : 0]),
     )
   }
 

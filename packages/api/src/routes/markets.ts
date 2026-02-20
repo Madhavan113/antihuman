@@ -45,7 +45,8 @@ const createMarketSchema = z.object({
 const placeBetSchema = z.object({
   bettorAccountId: z.string().min(1),
   outcome: z.string().min(1),
-  amountHbar: z.number().positive()
+  amountHbar: z.number().positive(),
+  maxPricePercent: z.number().min(0).max(100).optional()
 });
 
 const resolveMarketSchema = z.object({

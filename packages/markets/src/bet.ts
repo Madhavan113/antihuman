@@ -31,6 +31,7 @@ interface CurveTradeQuote {
   liquidityParameterHbar: number;
   sharesPurchased: number;
   preTradeOdds: number;
+  averageExecutionPrice: number;
   nextSharesByOutcome: Record<string, number>;
   nextOddsByOutcome: Record<string, number>;
 }
@@ -243,10 +244,16 @@ function quoteCurveTrade(market: Market, outcome: string, amountHbar: number): C
     curveState.liquidityParameterHbar
   );
 
+  const averageExecutionPrice =
+    sharesPurchased > 0
+      ? Number(((amountHbar / sharesPurchased) * 100).toFixed(2))
+      : Number(((preTradeProbabilities[outcome] ?? 0) * 100).toFixed(2));
+
   return {
     liquidityParameterHbar: curveState.liquidityParameterHbar,
     sharesPurchased,
     preTradeOdds: Number(((preTradeProbabilities[outcome] ?? 0) * 100).toFixed(2)),
+    averageExecutionPrice,
     nextSharesByOutcome,
     nextOddsByOutcome: toOddsPercentages(nextProbabilities, market.outcomes)
   };
@@ -258,6 +265,23 @@ function asMarketError(message: string, error: unknown): MarketError {
   }
 
   return new MarketError(message, error);
+}
+
+const betMutex = new Map<string, Promise<void>>();
+
+async function withMarketLock<T>(marketId: string, fn: () => Promise<T>): Promise<T> {
+  while (betMutex.has(marketId)) {
+    await betMutex.get(marketId);
+  }
+  let resolve: () => void;
+  const lock = new Promise<void>((r) => { resolve = r; });
+  betMutex.set(marketId, lock);
+  try {
+    return await fn();
+  } finally {
+    betMutex.delete(marketId);
+    resolve!();
+  }
 }
 
 export async function placeBet(
@@ -277,52 +301,52 @@ export async function placeBet(
     );
   }
 
-  const store = getMarketStore(options.store);
-  const market = store.markets.get(input.marketId);
+  return withMarketLock(input.marketId, async () => {
+    const store = getMarketStore(options.store);
+    const market = store.markets.get(input.marketId);
 
-  if (!market) {
-    throw new MarketError(`Market ${input.marketId} was not found.`);
-  }
+    if (!market) {
+      throw new MarketError(`Market ${input.marketId} was not found.`);
+    }
 
-  const deps: PlaceBetDependencies = {
-    transferHbar,
-    submitMessage,
-    now: () => new Date(),
-    ...options.deps
-  };
+    const deps: PlaceBetDependencies = {
+      transferHbar,
+      submitMessage,
+      now: () => new Date(),
+      ...options.deps
+    };
 
-  const now = deps.now();
+    const now = deps.now();
 
-  if (now.getTime() > Date.parse(market.closeTime)) {
-    market.status = "CLOSED";
-    persistMarketStore(store);
-  }
+    if (now.getTime() > Date.parse(market.closeTime) && market.status === "OPEN") {
+      market.status = "CLOSED";
+      persistMarketStore(store);
+    }
 
-  if (market.status !== "OPEN") {
-    throw new MarketError(`Market ${input.marketId} is not open for betting.`);
-  }
+    if (market.status !== "OPEN") {
+      throw new MarketError(`Market ${input.marketId} is not open for betting.`);
+    }
 
-  if (input.bettorAccountId === market.creatorAccountId) {
-    throw new MarketError(
-      `Account ${input.bettorAccountId} cannot bet on a market it created.`
-    );
-  }
+    if (input.bettorAccountId === market.creatorAccountId) {
+      throw new MarketError(
+        `Account ${input.bettorAccountId} cannot bet on a market it created.`
+      );
+    }
 
-  if (input.bettorAccountId === market.escrowAccountId) {
-    throw new MarketError(
-      `Account ${input.bettorAccountId} cannot bet on a market where it is the escrow.`
-    );
-  }
+    if (input.bettorAccountId === market.escrowAccountId) {
+      throw new MarketError(
+        `Account ${input.bettorAccountId} cannot bet on a market where it is the escrow.`
+      );
+    }
 
-  const normalizedOutcome = input.outcome.trim().toUpperCase();
+    const normalizedOutcome = input.outcome.trim().toUpperCase();
 
-  if (!market.outcomes.includes(normalizedOutcome)) {
-    throw new MarketError(
-      `Invalid outcome "${input.outcome}". Supported outcomes: ${market.outcomes.join(", ")}.`
-    );
-  }
+    if (!market.outcomes.includes(normalizedOutcome)) {
+      throw new MarketError(
+        `Invalid outcome "${input.outcome}". Supported outcomes: ${market.outcomes.join(", ")}.`
+      );
+    }
 
-  try {
     const curveTrade =
       market.liquidityModel === "WEIGHTED_CURVE"
         ? quoteCurveTrade(market, normalizedOutcome, input.amountHbar)
@@ -332,37 +356,55 @@ export async function placeBet(
       curveTrade &&
       typeof input.maxPricePercent === "number" &&
       Number.isFinite(input.maxPricePercent) &&
-      curveTrade.preTradeOdds > input.maxPricePercent
+      curveTrade.averageExecutionPrice > input.maxPricePercent
     ) {
       throw new MarketError(
-        `Slippage exceeded: current price ${curveTrade.preTradeOdds}% exceeds maximum acceptable price ${input.maxPricePercent}%.`
+        `Slippage exceeded: average execution price ${curveTrade.averageExecutionPrice}% exceeds maximum acceptable price ${input.maxPricePercent}%.`
       );
     }
 
-    const escrowTransfer = await deps.transferHbar(
-      input.bettorAccountId,
-      market.escrowAccountId,
-      input.amountHbar,
-      {
-        client: options.client
-      }
-    );
+    let escrowTransfer: Awaited<ReturnType<typeof transferHbar>>;
+    try {
+      escrowTransfer = await deps.transferHbar(
+        input.bettorAccountId,
+        market.escrowAccountId,
+        input.amountHbar,
+        { client: options.client }
+      );
+    } catch (error) {
+      throw asMarketError(`Failed to place bet for market ${input.marketId}.`, error);
+    }
 
-    const audit = await deps.submitMessage(
-      market.topicId,
-      {
-        type: "BET_PLACED",
-        marketId: market.id,
-        bettorAccountId: input.bettorAccountId,
-        outcome: normalizedOutcome,
-        amountHbar: input.amountHbar,
-        curveSharesPurchased: curveTrade?.sharesPurchased,
-        effectiveOdds: curveTrade?.preTradeOdds,
-        nextOddsByOutcome: curveTrade?.nextOddsByOutcome,
-        placedAt: now.toISOString()
-      },
-      { client: options.client }
-    );
+    let audit: Awaited<ReturnType<typeof submitMessage>>;
+    try {
+      audit = await deps.submitMessage(
+        market.topicId,
+        {
+          type: "BET_PLACED",
+          marketId: market.id,
+          bettorAccountId: input.bettorAccountId,
+          outcome: normalizedOutcome,
+          amountHbar: input.amountHbar,
+          curveSharesPurchased: curveTrade?.sharesPurchased,
+          effectiveOdds: curveTrade?.averageExecutionPrice,
+          nextOddsByOutcome: curveTrade?.nextOddsByOutcome,
+          placedAt: now.toISOString()
+        },
+        { client: options.client }
+      );
+    } catch (error) {
+      try {
+        await deps.transferHbar(
+          market.escrowAccountId,
+          input.bettorAccountId,
+          input.amountHbar,
+          { client: options.client }
+        );
+      } catch {
+        // Refund best-effort; original error is more important
+      }
+      throw asMarketError(`Failed to place bet for market ${input.marketId}.`, error);
+    }
 
     const bet: MarketBet = {
       id: randomUUID(),
@@ -371,7 +413,7 @@ export async function placeBet(
       outcome: normalizedOutcome,
       amountHbar: input.amountHbar,
       curveSharesPurchased: curveTrade?.sharesPurchased,
-      effectiveOdds: curveTrade?.preTradeOdds,
+      effectiveOdds: curveTrade?.averageExecutionPrice,
       placedAt: now.toISOString(),
       escrowTransactionId: escrowTransfer.transactionId,
       escrowTransactionUrl: escrowTransfer.transactionUrl,
@@ -393,7 +435,5 @@ export async function placeBet(
     persistMarketStore(store);
 
     return bet;
-  } catch (error) {
-    throw asMarketError(`Failed to place bet for market ${input.marketId}.`, error);
-  }
+  });
 }

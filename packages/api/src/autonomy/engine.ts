@@ -156,6 +156,7 @@ export class AutonomyEngine {
   #lastError: string | null = null;
   #activeTick = false;
   #starting = false;
+  #stopRequested = false;
   #settleFailedMarkets = new Set<string>();
 
   constructor(options: AutonomyEngineOptions) {
@@ -210,11 +211,21 @@ export class AutonomyEngine {
     }
 
     this.#starting = true;
+    this.#stopRequested = false;
 
     try {
       await this.ensureSharedEscrow();
       await this.ensureAgentPopulation();
+
+      if (this.#stopRequested) {
+        return;
+      }
+
       await this.runTick();
+
+      if (this.#stopRequested) {
+        return;
+      }
 
       this.#running = true;
       this.#interval = setInterval(() => {
@@ -227,7 +238,9 @@ export class AutonomyEngine {
   }
 
   async stop(): Promise<void> {
-    if (!this.#running) {
+    this.#stopRequested = true;
+
+    if (!this.#running && !this.#starting) {
       return;
     }
 
@@ -494,8 +507,8 @@ export class AutonomyEngine {
       );
 
       if (relevant.length > 0) {
-        const avg = relevant.reduce((sum, attestation) => sum + attestation.scoreDelta, 0) / relevant.length;
-        map[runtime.wallet.accountId] = clamp(50 + avg, 0, 100);
+        const total = relevant.reduce((sum, attestation) => sum + attestation.scoreDelta, 0);
+        map[runtime.wallet.accountId] = clamp(50 + total, 0, 100);
       }
     }
 
@@ -916,6 +929,15 @@ export class AutonomyEngine {
 
     if (cached) {
       return cached;
+    }
+
+    const MAX_CLIENT_CACHE_SIZE = 50;
+    if (this.#clientCache.size >= MAX_CLIENT_CACHE_SIZE) {
+      const oldest = this.#clientCache.keys().next().value;
+      if (oldest !== undefined) {
+        this.#clientCache.get(oldest)?.close();
+        this.#clientCache.delete(oldest);
+      }
     }
 
     const client = createHederaClient({

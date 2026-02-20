@@ -57,6 +57,7 @@ interface GoalContext {
   markets: MarketSnapshot[];
   reputationByAccount?: Record<string, number>;
   marketSentiment?: MarketSentimentMap;
+  lastFailedGoal?: ClawdbotGoal;
 }
 
 interface ActionContext {
@@ -65,6 +66,7 @@ interface ActionContext {
   markets: MarketSnapshot[];
   reputationByAccount?: Record<string, number>;
   marketSentiment?: MarketSentimentMap;
+  lastFailedGoal?: ClawdbotGoal;
 }
 
 // Free OpenRouter models to rotate through when rate-limited
@@ -239,7 +241,10 @@ export class LlmCognitionEngine {
       "",
       `Your bankroll: ${context.bot.bankrollHbar} HBAR`,
       `Open markets: ${openMarkets.length}`,
-      sentimentLines ? `\nMARKET SENTIMENT (fraction of total $ on each side):\n${sentimentLines}` : ""
+      sentimentLines ? `\nMARKET SENTIMENT (fraction of total $ on each side):\n${sentimentLines}` : "",
+      context.lastFailedGoal
+        ? `\nLAST GOAL FAILED: "${context.lastFailedGoal.title}" — Error: ${context.lastFailedGoal.error ?? "unknown"}. DO NOT repeat the same approach. Try a different strategy or a different market.`
+        : ""
     ].filter(Boolean).join("\n");
 
     const raw = await this.#chatCompletion("Goal", [{ role: "user", content: prompt }], 0.85);
@@ -296,7 +301,10 @@ export class LlmCognitionEngine {
       "",
       `Your bankroll: ${context.bot.bankrollHbar} HBAR`,
       `Goal: ${context.goal.title} — ${context.goal.detail}`,
-      `Open markets: ${marketInfo}`
+      `Open markets: ${marketInfo}`,
+      context.lastFailedGoal
+        ? `\nWARNING — LAST GOAL FAILED: "${context.lastFailedGoal.title}" with error: "${context.lastFailedGoal.error ?? "unknown"}". You MUST choose a DIFFERENT action or target a DIFFERENT market. Do NOT repeat what failed.`
+        : ""
     ].join("\n");
 
     const raw = await this.#chatCompletion("Action", [{ role: "user", content: prompt }], 0.85);

@@ -198,11 +198,15 @@ function initializeCurveState(
   };
 }
 
-function assertCloseTime(closeTime: string): void {
+function assertCloseTime(closeTime: string, now: Date): void {
   const timestamp = Date.parse(closeTime);
 
   if (!Number.isFinite(timestamp)) {
     throw new MarketError("closeTime must be a valid ISO timestamp.");
+  }
+
+  if (timestamp <= now.getTime()) {
+    throw new MarketError("closeTime must be in the future.");
   }
 }
 
@@ -220,7 +224,15 @@ export async function createMarket(
 ): Promise<CreateMarketResult> {
   validateNonEmptyString(input.question, "question");
   validateNonEmptyString(input.creatorAccountId, "creatorAccountId");
-  assertCloseTime(input.closeTime);
+
+  const deps: CreateMarketDependencies = {
+    createTopic,
+    submitMessage,
+    now: () => new Date(),
+    ...options.deps
+  };
+
+  assertCloseTime(input.closeTime, deps.now());
 
   const outcomes = normalizeOutcomes(input.outcomes);
   const initialOddsByOutcome = normalizeInitialOddsByOutcome(input.initialOddsByOutcome, outcomes);
@@ -232,12 +244,12 @@ export async function createMarket(
       ? initializeCurveState(outcomes, currentOddsByOutcome, curveLiquidityHbar)
       : undefined;
   const store = getMarketStore(options.store);
-  const deps: CreateMarketDependencies = {
-    createTopic,
-    submitMessage,
-    now: () => new Date(),
-    ...options.deps
-  };
+
+  if (!input.escrowAccountId && input.creatorAccountId) {
+    throw new MarketError(
+      "escrowAccountId is required. The market creator should not also be the escrow holder."
+    );
+  }
 
   try {
     const topic = await deps.createTopic(`MARKET:${input.question}`, undefined, {
@@ -255,7 +267,7 @@ export async function createMarket(
       question: input.question,
       description: input.description,
       creatorAccountId: input.creatorAccountId,
-      escrowAccountId: input.escrowAccountId ?? input.creatorAccountId,
+      escrowAccountId: input.escrowAccountId!,
       topicId: topic.topicId,
       topicUrl: topic.topicUrl,
       closeTime: input.closeTime,

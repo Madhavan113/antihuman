@@ -2520,7 +2520,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7987619",
         "closeTime": "2026-02-20T04:39:53.824Z",
         "createdAt": "2026-02-20T04:09:55.101Z",
-        "status": "OPEN",
+        "status": "CLOSED",
         "outcomes": [
           "YES",
           "NO"

@@ -126,6 +126,14 @@ export async function publishOrder(
     throw new MarketError(`Market ${input.marketId} was not found.`);
   }
 
+  if (market.status !== "OPEN") {
+    throw new MarketError(`Market ${input.marketId} is not open for orders.`);
+  }
+
+  if (input.price > 1) {
+    throw new MarketError(`Order price ${input.price} exceeds maximum of 1.0 for a probability market.`);
+  }
+
   const normalizedOutcome = input.outcome.trim().toUpperCase();
 
   if (!market.outcomes.includes(normalizedOutcome)) {
@@ -275,6 +283,11 @@ async function matchOrdersForMarket(
 
     if (!bid || !ask || bid.price < ask.price) {
       break;
+    }
+
+    if (bid.accountId === ask.accountId) {
+      askIdx++;
+      continue;
     }
 
     const remainingBid = bid.quantity - (bid.filledQuantity ?? 0);

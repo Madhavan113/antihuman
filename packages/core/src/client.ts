@@ -180,4 +180,20 @@ export function resetHederaClientForTests(): void {
   }
 }
 
-export const hederaClient: Client = getHederaClient();
+let _lazyClient: Client | null = null;
+
+export function getLazyHederaClient(): Client {
+  if (!_lazyClient) {
+    _lazyClient = getHederaClient();
+  }
+  return _lazyClient;
+}
+
+/** @deprecated Use getLazyHederaClient() to avoid crashes on partial env config. */
+export const hederaClient: Client = (() => {
+  try {
+    return getHederaClient();
+  } catch {
+    return null as unknown as Client;
+  }
+})();

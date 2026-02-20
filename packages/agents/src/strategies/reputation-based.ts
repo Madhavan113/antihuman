@@ -12,20 +12,26 @@ export interface ReputationStrategyOptions {
   maxStakePct?: number;
 }
 
-function pickBinaryOutcome(market: MarketSnapshot, optimistic: boolean): string {
-  const normalized = market.outcomes.map((outcome) => outcome.toUpperCase());
-  const yesIndex = normalized.indexOf("YES");
-  const noIndex = normalized.indexOf("NO");
+function pickOutcome(market: MarketSnapshot, optimistic: boolean): string {
+  if (market.outcomes.length === 2) {
+    const normalized = market.outcomes.map((outcome) => outcome.toUpperCase());
+    const yesIndex = normalized.indexOf("YES");
+    const noIndex = normalized.indexOf("NO");
 
-  if (yesIndex >= 0 && noIndex >= 0) {
-    return optimistic ? market.outcomes[yesIndex] ?? market.outcomes[0] ?? "YES" : market.outcomes[noIndex] ?? market.outcomes[0] ?? "NO";
+    if (yesIndex >= 0 && noIndex >= 0) {
+      return optimistic
+        ? market.outcomes[yesIndex] ?? market.outcomes[0] ?? "YES"
+        : market.outcomes[noIndex] ?? market.outcomes[0] ?? "NO";
+    }
   }
 
   if (optimistic) {
     return market.outcomes[0] ?? "YES";
   }
 
-  return market.outcomes[1] ?? market.outcomes[0] ?? "NO";
+  return market.outcomes.length > 1
+    ? market.outcomes[market.outcomes.length - 1] ?? market.outcomes[0] ?? "NO"
+    : market.outcomes[0] ?? "NO";
 }
 
 export function createReputationBasedStrategy(
@@ -37,10 +43,19 @@ export function createReputationBasedStrategy(
 
   return {
     name: "reputation-based",
-    decide(agent: BaseAgent, market: MarketSnapshot, context: AgentContext): BetDecision {
+    decide(agent: BaseAgent, market: MarketSnapshot, context: AgentContext): BetDecision | null {
       const creatorReputation = context.reputationByAccount[market.creatorAccountId] ?? 50;
+      const reputationDelta = Math.abs(creatorReputation - 50);
+      if (reputationDelta < 10) {
+        return null;
+      }
+
+      if (agent.bankrollHbar < minStake) {
+        return null;
+      }
+
       const optimistic = creatorReputation >= threshold;
-      const outcome = pickBinaryOutcome(market, optimistic);
+      const outcome = pickOutcome(market, optimistic);
       const confidence = Math.min(0.95, Math.max(0.55, creatorReputation / 100));
       const bankrollFactor = Math.max(1, agent.bankrollHbar * maxStakePct);
       const amountHbar = Math.max(minStake, Number((confidence * bankrollFactor).toFixed(2)));
