@@ -17,6 +17,7 @@ describe("createMarket", () => {
       {
         question: "Will BTC hit 100k by March?",
         creatorAccountId: "0.0.1001",
+        escrowAccountId: "0.0.5000",
         closeTime: "2026-03-01T00:00:00.000Z"
       },
       {
