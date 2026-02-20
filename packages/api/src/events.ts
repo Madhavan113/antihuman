@@ -9,10 +9,14 @@ export type ApiEventListener = (event: ApiEvent) => void;
 export interface ApiEventBus {
   publish: <TPayload = unknown>(type: string, payload: TPayload) => ApiEvent<TPayload>;
   subscribe: (listener: ApiEventListener) => () => void;
+  recentEvents: (limit?: number) => ApiEvent[];
 }
 
-export function createEventBus(): ApiEventBus {
+const DEFAULT_HISTORY_SIZE = 500;
+
+export function createEventBus(historySize = DEFAULT_HISTORY_SIZE): ApiEventBus {
   const listeners = new Set<ApiEventListener>();
+  const history: ApiEvent[] = [];
 
   return {
     publish(type, payload) {
@@ -21,6 +25,11 @@ export function createEventBus(): ApiEventBus {
         payload,
         timestamp: new Date().toISOString()
       };
+
+      history.push(event);
+      if (history.length > historySize) {
+        history.splice(0, history.length - historySize);
+      }
 
       for (const listener of listeners) {
         listener(event);
@@ -34,6 +43,10 @@ export function createEventBus(): ApiEventBus {
       return () => {
         listeners.delete(listener);
       };
+    },
+    recentEvents(limit = 200) {
+      const capped = Math.max(1, Math.min(limit, historySize));
+      return history.slice(-capped);
     }
   };
 }

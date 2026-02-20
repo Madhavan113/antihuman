@@ -165,9 +165,10 @@ export function Dashboard() {
             </button>
           </div>
 
-          {sidebarTab === 'events' ? (
+          <div style={{ display: sidebarTab === 'events' ? 'flex' : 'none', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
             <ActivityFeed onEventClick={handleEventClick} className="flex-1 overflow-y-auto" />
-          ) : (
+          </div>
+          <div style={{ display: sidebarTab === 'thread' ? 'flex' : 'none', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
             <div className="flex-1 overflow-y-auto">
               {thread.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16">
@@ -177,7 +178,7 @@ export function Dashboard() {
                 thread.map(msg => <ThreadMessage key={msg.id} msg={msg} />)
               )}
             </div>
-          )}
+          </div>
         </aside>
       </div>
 

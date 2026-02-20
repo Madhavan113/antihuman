@@ -294,6 +294,12 @@ export function createApiServer(options: CreateApiServerOptions = {}): ApiServer
     response.json({ ok: true, service: "@simulacrum/api" });
   });
 
+  app.get("/events/recent", (request, response) => {
+    const rawLimit = Number(request.query.limit);
+    const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 200;
+    response.json({ events: eventBus.recentEvents(limit) });
+  });
+
   // Serve OpenAPI spec at /docs
   const openapiSpecPath = join(dirname(fileURLToPath(import.meta.url)), "..", "openapi.json");
   try {

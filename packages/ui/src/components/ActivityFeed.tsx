@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { apiFetch } from '../api/client'
 import type { WsEvent } from '../api/types'
 import { useWebSocket } from '../hooks/useWebSocket'
 
@@ -31,11 +32,31 @@ export function ActivityFeed({ onEventClick, className = '' }: ActivityFeedProps
   const { subscribe } = useWebSocket()
   const topRef = useRef<HTMLDivElement>(null)
   const serialRef = useRef(0)
+  const seededRef = useRef(false)
+
+  useEffect(() => {
+    if (seededRef.current) return
+    seededRef.current = true
+    apiFetch<{ events: WsEvent[] }>('/events/recent?limit=200')
+      .then(({ events: history }) => {
+        setEvents((prev) => {
+          const existingKeys = new Set(prev.map((e) => e.key))
+          const seeded: FeedEventEntry[] = history
+            .reverse()
+            .map((event) => {
+              const key = `${event.timestamp}-${event.type}-${serialRef.current++}`
+              return { key, event }
+            })
+            .filter((entry) => !existingKeys.has(entry.key))
+          return [...seeded, ...prev].slice(0, MAX_EVENTS)
+        })
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     return subscribe((event) => {
       setEvents((prev) => {
-        // Ensure React list keys are unique even when timestamp/type collide.
         const next = [{ key: `${event.timestamp}-${event.type}-${serialRef.current++}`, event }, ...prev]
         return next.slice(0, MAX_EVENTS)
       })

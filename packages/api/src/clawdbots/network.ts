@@ -2328,6 +2328,9 @@ export class ClawdbotNetwork {
         await this.executePlannedAction(runtime, action, markets, now, reputationByAccount, marketSentiment);
         if (action.type !== "WAIT") {
           this.recordHostedAction(runtime.agent.id);
+          if (action.rationale) {
+            this.postMessage(action.rationale, runtime.agent.id);
+          }
         }
         const completedAt = new Date().toISOString();
         const completed: ClawdbotGoal = {
@@ -2405,6 +2408,11 @@ export class ClawdbotNetwork {
       updatedAt: new Date().toISOString()
     };
     this.#goalsByBotId.set(runtime.agent.id, inProgress);
+
+    if (created.title && created.title !== "Waiting for LLM") {
+      this.postMessage(created.title, runtime.agent.id);
+    }
+
     this.#eventBus.publish("clawdbot.goal.created", {
       botId: runtime.agent.id,
       goal: inProgress
