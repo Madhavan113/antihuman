@@ -282,7 +282,7 @@ export function createApiServer(options: CreateApiServerOptions = {}): ApiServer
   }
 
   app.use(createCorsMiddleware({ allowedOrigins: options.cors?.allowedOrigins }));
-  app.use(createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 100 }));
+  app.use(createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 600 }));
   app.use(express.json());
   app.use(createAuthMiddleware({ apiKey: options.apiKey }));
   if (agentPlatform.enabled && agentPlatform.agentOnlyMode && agentAuthService) {
