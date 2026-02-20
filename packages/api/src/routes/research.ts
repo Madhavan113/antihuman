@@ -101,7 +101,7 @@ export function createResearchRouter(engine: ResearchEngine): Router {
       return;
     }
     try {
-      await engine.runTick();
+      await engine.runTick(true);
       res.json(engine.getStatus());
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : "Failed to run tick" });

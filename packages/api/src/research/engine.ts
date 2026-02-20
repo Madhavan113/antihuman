@@ -159,7 +159,7 @@ export class ResearchEngine {
     this.#eventBus.publish("research.stopped", { reason: "manual" });
   }
 
-  async runTick(): Promise<void> {
+  async runTick(force = false): Promise<void> {
     if (!this.#enabled || this.#activeTick) return;
     this.#activeTick = true;
 
@@ -183,14 +183,14 @@ export class ResearchEngine {
         });
       }
 
-      const recentWindows = this.#collector.recentWindows(5);
-      const allRecentObs = recentWindows.flatMap((w) => w.observations);
+      const allWindows = this.#collector.recentWindows(100);
+      const allObs = this.#collector.allObservations();
 
       for (const agent of this.#agents) {
         if (agent.pipeline) {
           const result = await advancePipeline(
             agent,
-            recentWindows,
+            allWindows,
             this.#xai,
             this.#evalThreshold,
             () => getMarketStore()
@@ -230,8 +230,8 @@ export class ResearchEngine {
 
           this.#savePipelineState(agent);
         } else if (
-          this.#tickCount % this.#publicationIntervalTicks === 0 &&
-          agent.hasEnoughData(allRecentObs, this.#minObservations)
+          (force || this.#tickCount % this.#publicationIntervalTicks === 0) &&
+          agent.hasEnoughData(allObs, this.#minObservations)
         ) {
           agent.startPipeline();
           this.#savePipelineState(agent);

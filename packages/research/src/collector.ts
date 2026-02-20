@@ -195,10 +195,13 @@ export class DataCollector {
 
   flush(): ObservationWindow {
     const window = createWindow([...this.#buffer]);
-    this.#sealedWindows.push(window);
 
-    if (this.#sealedWindows.length > this.#maxSealedWindows) {
-      this.#sealedWindows.splice(0, this.#sealedWindows.length - this.#maxSealedWindows);
+    if (this.#buffer.length > 0) {
+      this.#sealedWindows.push(window);
+
+      if (this.#sealedWindows.length > this.#maxSealedWindows) {
+        this.#sealedWindows.splice(0, this.#sealedWindows.length - this.#maxSealedWindows);
+      }
     }
 
     this.#buffer.length = 0;
