@@ -78,6 +78,44 @@
       "transactionId": "0.0.7973937@1771458142.005069749",
       "transactionUrl": "https://hashscan.io/testnet/transaction/0.0.7973937%401771458142.005069749",
       "sequenceNumber": 4
+    },
+    {
+      "id": "acd3e989-74c8-4ddd-b060-07a3abb5df10",
+      "topicId": "0.0.7976125",
+      "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976125",
+      "subjectAccountId": "0.0.7987031",
+      "attesterAccountId": "0.0.7987373",
+      "scoreDelta": 5,
+      "confidence": 0.5833333333333334,
+      "reason": "Oracle vote matched final outcome (NO) for market 0.0.7976065",
+      "tags": [
+        "oracle-vote",
+        "vote-correct",
+        "market:0.0.7976065"
+      ],
+      "createdAt": "2026-02-20T03:20:39.602Z",
+      "transactionId": "0.0.7973937@1771557633.864155006",
+      "transactionUrl": "https://hashscan.io/testnet/transaction/0.0.7973937%401771557633.864155006",
+      "sequenceNumber": 5
+    },
+    {
+      "id": "6da994f5-ca7b-4c8d-9293-cda450cb616e",
+      "topicId": "0.0.7976125",
+      "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976125",
+      "subjectAccountId": "0.0.7987373",
+      "attesterAccountId": "0.0.7987373",
+      "scoreDelta": 5,
+      "confidence": 0.5833333333333334,
+      "reason": "Oracle vote matched final outcome (NO) for market 0.0.7976065",
+      "tags": [
+        "oracle-vote",
+        "vote-correct",
+        "market:0.0.7976065"
+      ],
+      "createdAt": "2026-02-20T03:20:41.677Z",
+      "transactionId": "0.0.7973937@1771557636.440237698",
+      "transactionUrl": "https://hashscan.io/testnet/transaction/0.0.7973937%401771557636.440237698",
+      "sequenceNumber": 6
     }
   ]
 }

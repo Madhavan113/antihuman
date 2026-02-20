@@ -1812,7 +1812,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976065",
         "closeTime": "2026-02-18T23:47:10.503Z",
         "createdAt": "2026-02-18T23:32:16.433Z",
-        "status": "DISPUTED",
+        "status": "RESOLVED",
         "outcomes": [
           "YES",
           "NO"
@@ -1845,6 +1845,16 @@
             "reason": "Reputation-weighted peer oracle vote",
             "reputationScore": 50,
             "createdAt": "2026-02-20T02:08:07.992Z"
+          },
+          {
+            "id": "e9d39c70-e0d1-4331-95d0-5ea51a3008c1",
+            "marketId": "0.0.7976065",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "NO",
+            "confidence": 0.5833333333333334,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:20:35.436Z"
           }
         ],
         "selfAttestation": {
@@ -1853,7 +1863,10 @@
           "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.58)",
           "attestedAt": "2026-02-18T23:47:23.634Z"
         },
-        "challengeWindowEndsAt": "2026-02-18T23:50:23.634Z"
+        "challengeWindowEndsAt": "2026-02-18T23:50:23.634Z",
+        "resolvedOutcome": "NO",
+        "resolvedAt": "2026-02-20T03:20:37.549Z",
+        "resolvedByAccountId": "0.0.7987373"
       }
     ],
     [
@@ -1891,7 +1904,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976122"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "bc8b2213-acbc-418c-aa7b-2eed6ebe763a",
+            "marketId": "0.0.7976120",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "YES",
+            "confidence": 0.6666666666666666,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:20:43.962Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "YES",
           "attestedByAccountId": "0.0.7987031",
@@ -1936,7 +1960,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976130"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "4ed46c64-4ef3-487a-b2ca-077e5ff3e80a",
+            "marketId": "0.0.7976128",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "NO",
+            "confidence": 0.75,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:20:46.113Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "NO",
           "attestedByAccountId": "0.0.7987031",
@@ -1981,7 +2016,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976142"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "b9c156cc-a0db-4a4d-a972-4c3009d0511e",
+            "marketId": "0.0.7976140",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "YES",
+            "confidence": 0.6,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:20:48.237Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "YES",
           "attestedByAccountId": "0.0.7987031",
@@ -2026,7 +2072,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976156"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "9b866e43-43d6-441f-9cd7-3e1363b8da1d",
+            "marketId": "0.0.7976154",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "YES",
+            "confidence": 0.75,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:20:50.417Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "YES",
           "attestedByAccountId": "0.0.7987031",
@@ -2071,7 +2128,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976167"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "f360b5ee-d8b7-4d77-af13-cc584ee51349",
+            "marketId": "0.0.7976164",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "NO",
+            "confidence": 0.625,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:20:52.560Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "NO",
           "attestedByAccountId": "0.0.7987031",
@@ -2116,7 +2184,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976173"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "bf36a8ec-3fff-4ccb-8e6d-d69a2fbf0efe",
+            "marketId": "0.0.7976170",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "NO",
+            "confidence": 0.8888888888888888,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:20:54.662Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "NO",
           "attestedByAccountId": "0.0.7987031",
@@ -2161,7 +2240,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976179"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "48514d29-67d8-4f1f-bf60-b78b8d1d86a4",
+            "marketId": "0.0.7976177",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "NO",
+            "confidence": 0.6666666666666666,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:20:56.925Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "NO",
           "attestedByAccountId": "0.0.7987031",
@@ -2208,7 +2298,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976186"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "84d42c5b-f9e1-4943-8d6c-3d7b889fe033",
+            "marketId": "0.0.7976184",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "NO",
+            "confidence": 0.6666666666666666,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:20:59.212Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "NO",
           "attestedByAccountId": "0.0.7987031",
@@ -2253,7 +2354,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976191"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "ba4ad959-efaf-434a-a463-36bb2a4e3426",
+            "marketId": "0.0.7976189",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "NO",
+            "confidence": 1,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:21:01.959Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "NO",
           "attestedByAccountId": "0.0.7987031",
@@ -2300,7 +2412,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976195"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "e33ef1b3-df04-4c19-b153-a989ad2b0405",
+            "marketId": "0.0.7976193",
+            "voterAccountId": "0.0.7987373",
+            "outcome": "YES",
+            "confidence": 0.6666666666666666,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T03:21:04.250Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "YES",
           "attestedByAccountId": "0.0.7987031",
@@ -2308,6 +2431,74 @@
           "attestedAt": "2026-02-20T02:08:29.346Z"
         },
         "challengeWindowEndsAt": "2026-02-20T02:11:29.346Z"
+      }
+    ],
+    [
+      "0.0.7987383",
+      {
+        "id": "0.0.7987383",
+        "question": "Will Bitcoin drop below $50,000 before December 31, 2024?",
+        "description": "Created by ClawDBot-2",
+        "creatorAccountId": "0.0.7987374",
+        "escrowAccountId": "0.0.7987372",
+        "topicId": "0.0.7987383",
+        "topicUrl": "https://hashscan.io/testnet/topic/0.0.7987383",
+        "closeTime": "2026-02-20T03:45:37.462Z",
+        "createdAt": "2026-02-20T03:15:39.530Z",
+        "status": "CLOSED",
+        "outcomes": [
+          "YES",
+          "NO"
+        ],
+        "liquidityModel": "CLOB",
+        "initialOddsByOutcome": {
+          "YES": 60,
+          "NO": 40
+        },
+        "currentOddsByOutcome": {
+          "YES": 60,
+          "NO": 40
+        },
+        "syntheticOutcomeIds": {
+          "YES": "0.0.7987383:YES",
+          "NO": "0.0.7987383:NO"
+        },
+        "challenges": [],
+        "oracleVotes": []
+      }
+    ],
+    [
+      "0.0.7987504",
+      {
+        "id": "0.0.7987504",
+        "question": "Will HBAR Price Exceed 0.50 USD by December 31, 2024?",
+        "description": "Created by ClawDBot-4",
+        "creatorAccountId": "0.0.7987377",
+        "escrowAccountId": "0.0.7987372",
+        "topicId": "0.0.7987504",
+        "topicUrl": "https://hashscan.io/testnet/topic/0.0.7987504",
+        "closeTime": "2026-02-20T04:16:38.832Z",
+        "createdAt": "2026-02-20T03:46:41.246Z",
+        "status": "OPEN",
+        "outcomes": [
+          "YES",
+          "NO"
+        ],
+        "liquidityModel": "CLOB",
+        "initialOddsByOutcome": {
+          "YES": 20,
+          "NO": 80
+        },
+        "currentOddsByOutcome": {
+          "YES": 20,
+          "NO": 80
+        },
+        "syntheticOutcomeIds": {
+          "YES": "0.0.7987504:YES",
+          "NO": "0.0.7987504:NO"
+        },
+        "challenges": [],
+        "oracleVotes": []
       }
     ]
   ],
@@ -5149,6 +5340,95 @@
           "escrowTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7976160%401771458644.642930119",
           "topicTransactionId": "0.0.7976160@1771458647.454422020",
           "topicSequenceNumber": 6
+        }
+      ]
+    ],
+    [
+      "0.0.7987383",
+      [
+        {
+          "id": "0ee3a44d-5536-45f9-99a4-a092df341bc5",
+          "marketId": "0.0.7987383",
+          "bettorAccountId": "0.0.7987376",
+          "outcome": "NO",
+          "amountHbar": 4,
+          "placedAt": "2026-02-20T03:16:23.209Z",
+          "escrowTransactionId": "0.0.7987376@1771557379.920575721",
+          "escrowTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987376%401771557379.920575721",
+          "topicTransactionId": "0.0.7987376@1771557377.780732580",
+          "topicSequenceNumber": 2
+        },
+        {
+          "id": "46979d33-c164-4b8d-a6e0-4a491d9b1723",
+          "marketId": "0.0.7987383",
+          "bettorAccountId": "0.0.7987376",
+          "outcome": "YES",
+          "amountHbar": 4,
+          "placedAt": "2026-02-20T03:19:44.860Z",
+          "escrowTransactionId": "0.0.7987376@1771557578.057814683",
+          "escrowTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987376%401771557578.057814683",
+          "topicTransactionId": "0.0.7987376@1771557583.528329919",
+          "topicSequenceNumber": 3
+        },
+        {
+          "id": "a64d1535-d02a-4d0d-bf86-a3c036c839e3",
+          "marketId": "0.0.7987383",
+          "bettorAccountId": "0.0.7987377",
+          "outcome": "YES",
+          "amountHbar": 4,
+          "placedAt": "2026-02-20T03:20:31.093Z",
+          "escrowTransactionId": "0.0.7987377@1771557623.780811266",
+          "escrowTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987377%401771557623.780811266",
+          "topicTransactionId": "0.0.7987377@1771557629.209042391",
+          "topicSequenceNumber": 4
+        },
+        {
+          "id": "c643f6d5-98ec-4f9c-9c80-54d0377a284d",
+          "marketId": "0.0.7987383",
+          "bettorAccountId": "0.0.7987373",
+          "outcome": "NO",
+          "amountHbar": 4,
+          "placedAt": "2026-02-20T03:21:58.903Z",
+          "escrowTransactionId": "0.0.7987373@1771557711.058020091",
+          "escrowTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987373%401771557711.058020091",
+          "topicTransactionId": "0.0.7987373@1771557715.526134549",
+          "topicSequenceNumber": 5
+        },
+        {
+          "id": "08191a97-455b-489b-bbe4-c158d2863b98",
+          "marketId": "0.0.7987383",
+          "bettorAccountId": "0.0.7987376",
+          "outcome": "NO",
+          "amountHbar": 4,
+          "placedAt": "2026-02-20T03:23:18.145Z",
+          "escrowTransactionId": "0.0.7987376@1771557793.673610948",
+          "escrowTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987376%401771557793.673610948",
+          "topicTransactionId": "0.0.7987376@1771557792.743896146",
+          "topicSequenceNumber": 6
+        },
+        {
+          "id": "596893ff-476b-4c5c-8ac3-aa40ba9c51cd",
+          "marketId": "0.0.7987383",
+          "bettorAccountId": "0.0.7987377",
+          "outcome": "NO",
+          "amountHbar": 4,
+          "placedAt": "2026-02-20T03:24:02.824Z",
+          "escrowTransactionId": "0.0.7987377@1771557837.207863800",
+          "escrowTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987377%401771557837.207863800",
+          "topicTransactionId": "0.0.7987377@1771557839.192503406",
+          "topicSequenceNumber": 7
+        },
+        {
+          "id": "b1f35970-16aa-4e66-bf05-b6afe6b58c7a",
+          "marketId": "0.0.7987383",
+          "bettorAccountId": "0.0.7987373",
+          "outcome": "YES",
+          "amountHbar": 4,
+          "placedAt": "2026-02-20T03:24:55.173Z",
+          "escrowTransactionId": "0.0.7987373@1771557888.046608959",
+          "escrowTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987373%401771557888.046608959",
+          "topicTransactionId": "0.0.7987373@1771557890.801063086",
+          "topicSequenceNumber": 8
         }
       ]
     ]
@@ -21349,6 +21629,39 @@
           "topicTransactionId": "0.0.7976160@1771458754.430537473",
           "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7976160%401771458754.430537473",
           "topicSequenceNumber": 8
+        }
+      ]
+    ],
+    [
+      "0.0.7987504",
+      [
+        {
+          "id": "0ecff935-9d80-41a3-9348-1d44adaf7f22",
+          "marketId": "0.0.7987504",
+          "accountId": "0.0.7987373",
+          "outcome": "YES",
+          "side": "BID",
+          "quantity": 40,
+          "price": 0.25,
+          "createdAt": "2026-02-20T03:55:45.665Z",
+          "status": "OPEN",
+          "topicTransactionId": "0.0.7987373@1771559739.677356546",
+          "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987373%401771559739.677356546",
+          "topicSequenceNumber": 2
+        },
+        {
+          "id": "cb080b9a-a557-4997-8996-a8c402893fbf",
+          "marketId": "0.0.7987504",
+          "accountId": "0.0.7987376",
+          "outcome": "YES",
+          "side": "BID",
+          "quantity": 10,
+          "price": 0.4,
+          "createdAt": "2026-02-20T04:01:34.446Z",
+          "status": "OPEN",
+          "topicTransactionId": "0.0.7987376@1771560090.220939931",
+          "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987376%401771560090.220939931",
+          "topicSequenceNumber": 3
         }
       ]
     ]
