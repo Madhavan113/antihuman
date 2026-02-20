@@ -49,8 +49,10 @@ export function createAgentAuthMiddleware(
 
     try {
       const claims = authService.verifyAccessToken(token);
+      const profile = authService.getAgent(claims.sub);
       request.agentContext = {
         agentId: claims.sub,
+        agentName: profile?.name ?? claims.sub,
         walletAccountId: claims.walletAccountId,
         scope: claims.scope,
         tokenId: claims.jti,

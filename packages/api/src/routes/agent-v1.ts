@@ -143,9 +143,12 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
       });
       options.faucetService.recordRegistrationFunding(agent.id, options.faucetService.initialFundingHbar);
 
+      console.log(`[agent-platform] Agent registered: "${agent.name}" (${agent.id}) wallet=${agent.walletAccountId}`);
       options.eventBus.publish("agent.v1.registered", {
         agentId: agent.id,
-        walletAccountId: agent.walletAccountId
+        name: agent.name,
+        walletAccountId: agent.walletAccountId,
+        source: "platform"
       });
 
       response.status(201).json({
@@ -322,7 +325,8 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
         },
         { client: options.authService.getClientForAgent(context.agentId) }
       );
-      options.eventBus.publish("market.created", created.market);
+      console.log(`[agent-platform] Market created by "${context.agentName}" (${context.walletAccountId}): "${request.body.question}"`);
+      options.eventBus.publish("market.created", { ...created.market, source: "platform", agentName: context.agentName });
       response.status(201).json(created);
     } catch (error) {
       const parts: string[] = [];
@@ -333,7 +337,7 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
       }
       if (current && !(current instanceof Error)) parts.push(String(current));
       const fullMessage = parts.join(" — ");
-      console.error(`[agent-v1] Market creation failed: ${fullMessage}`);
+      console.error(`[agent-platform] Market creation failed for "${context.agentName}": ${fullMessage}`);
       response.status(400).json({ error: fullMessage });
     }
   });
@@ -356,7 +360,8 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
         },
         { client: options.authService.getClientForAgent(context.agentId) }
       );
-      options.eventBus.publish("market.bet", bet);
+      console.log(`[agent-platform] Bet by "${context.agentName}" (${context.walletAccountId}): ${request.body.outcome} ${request.body.amountHbar} HBAR on ${request.params.marketId.slice(0, 8)}`);
+      options.eventBus.publish("market.bet", { ...bet, source: "platform", agentName: context.agentName });
       response.status(201).json({ bet });
     } catch (error) {
       response.status(400).json({ error: (error as Error).message });
@@ -383,7 +388,8 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
         },
         { client: options.authService.getClientForAgent(context.agentId) }
       );
-      options.eventBus.publish("market.order", order);
+      console.log(`[agent-platform] Order by "${context.agentName}": ${request.body.side} ${request.body.quantity}x${request.body.price} ${request.body.outcome} on ${request.params.marketId.slice(0, 8)}`);
+      options.eventBus.publish("market.order", { ...order, source: "platform", agentName: context.agentName });
       response.status(201).json({ order });
     } catch (error) {
       response.status(400).json({ error: (error as Error).message });
@@ -408,7 +414,8 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
         },
         { client: options.authService.getClientForAgent(context.agentId) }
       );
-      options.eventBus.publish("market.resolved", resolution);
+      console.log(`[agent-platform] Market resolved by "${context.agentName}": ${request.body.resolvedOutcome} on ${request.params.marketId.slice(0, 8)}`);
+      options.eventBus.publish("market.resolved", { ...resolution, source: "platform", agentName: context.agentName });
       response.status(200).json({ resolution });
     } catch (error) {
       response.status(400).json({ error: (error as Error).message });
@@ -440,7 +447,8 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
         },
         { client: options.authService.getClientForAgent(context.agentId) }
       );
-      options.eventBus.publish("market.self_attested", result);
+      console.log(`[agent-platform] Self-attestation by "${context.agentName}": ${request.body.proposedOutcome} on ${request.params.marketId.slice(0, 8)}`);
+      options.eventBus.publish("market.self_attested", { ...result, source: "platform", agentName: context.agentName });
       response.status(200).json(result);
     } catch (error) {
       response.status(400).json({ error: (error as Error).message });
@@ -474,7 +482,8 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
           },
           { client: options.authService.getClientForAgent(context.agentId) }
         );
-        options.eventBus.publish("market.challenged", result.challenge);
+        console.log(`[agent-platform] Challenge by "${context.agentName}": ${request.body.proposedOutcome} on ${request.params.marketId.slice(0, 8)}`);
+        options.eventBus.publish("market.challenged", { ...result.challenge, source: "platform", agentName: context.agentName });
         response.status(201).json(result);
       } catch (error) {
         response.status(400).json({ error: (error as Error).message });
@@ -575,7 +584,8 @@ export function createAgentV1Router(options: CreateAgentV1RouterOptions): Router
         },
         { client: options.authService.getClientForAgent(context.agentId) }
       );
-      options.eventBus.publish("market.claimed", claim);
+      console.log(`[agent-platform] Winnings claimed by "${context.agentName}" on ${request.params.marketId.slice(0, 8)}`);
+      options.eventBus.publish("market.claimed", { ...claim, source: "platform", agentName: context.agentName });
       response.status(201).json({ claim });
     } catch (error) {
       response.status(400).json({ error: (error as Error).message });

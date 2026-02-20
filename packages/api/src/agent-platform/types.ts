@@ -89,6 +89,7 @@ export interface AgentJwtClaims {
 
 export interface AgentRequestContext {
   agentId: string;
+  agentName: string;
   walletAccountId: string;
   scope: "agent";
   tokenId: string;
