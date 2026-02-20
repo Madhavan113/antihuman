@@ -34,7 +34,7 @@ import {
   submitOracleVote,
   type Market
 } from "@simulacrum/markets";
-import { getReputationStore, submitAttestation } from "@simulacrum/reputation";
+import { calculateReputationScore, getReputationStore, submitAttestation } from "@simulacrum/reputation";
 
 import type { ApiEvent, ApiEventBus } from "../events.js";
 import type { AgentRegistry } from "../routes/agents.js";
@@ -1834,6 +1834,8 @@ export class ClawdbotNetwork {
     const persisted = this.#walletStore.get();
 
     if (this.#runtimeBots.size === 0 && persisted.wallets.length > 0) {
+      const repStore = getReputationStore();
+
       let operatorHbar = Infinity;
       try {
         const opBal = await getBalance(this.#operatorAccountId, {
@@ -1905,13 +1907,15 @@ export class ClawdbotNetwork {
           );
         }
 
+        const restoredRep = calculateReputationScore(wallet.accountId, repStore.attestations);
+
         const agent = new BaseAgent(
           {
             id: randomUUID(),
             name: `ClawDBot-${sequence}`,
             accountId: wallet.accountId,
             bankrollHbar: Math.max(1, Math.round(actualBalance)),
-            reputationScore: 50
+            reputationScore: restoredRep.score
           },
           strategy
         );
@@ -2316,25 +2320,19 @@ export class ClawdbotNetwork {
 
   private buildReputationMap(): Record<string, number> {
     const map: Record<string, number> = {};
-
-    for (const runtime of this.#runtimeBots.values()) {
-      map[runtime.wallet.accountId] = runtime.agent.reputationScore;
-    }
-
     const store = getReputationStore();
 
     for (const runtime of this.#runtimeBots.values()) {
-      if (store.attestations.length === 0) {
-        continue;
-      }
+      if (store.attestations.length > 0) {
+        const computed = calculateReputationScore(runtime.wallet.accountId, store.attestations);
+        map[runtime.wallet.accountId] = computed.score;
 
-      const relevant = store.attestations.filter(
-        (attestation) => attestation.subjectAccountId === runtime.wallet.accountId
-      );
-
-      if (relevant.length > 0) {
-        const total = relevant.reduce((sum, attestation) => sum + attestation.scoreDelta, 0);
-        map[runtime.wallet.accountId] = clamp(50 + total, 0, 100);
+        const drift = computed.score - runtime.agent.reputationScore;
+        if (Math.abs(drift) > 0.5) {
+          runtime.agent.adjustReputation(drift);
+        }
+      } else {
+        map[runtime.wallet.accountId] = runtime.agent.reputationScore;
       }
     }
 

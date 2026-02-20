@@ -399,17 +399,20 @@ export class AutonomyEngine {
     const persisted = this.#walletStore.get();
 
     if (this.#runtimeAgents.size === 0 && persisted.wallets.length > 0) {
+      const repStore = getReputationStore();
+
       for (let index = 0; index < persisted.wallets.length && this.#runtimeAgents.size < this.#targetAgents; index += 1) {
         const wallet = persisted.wallets[index]!;
         const sequence = index + 1;
         const strategy = this.strategyForIndex(sequence);
+        const restoredRep = calculateReputationScore(wallet.accountId, repStore.attestations);
         const agent = new BaseAgent(
           {
             id: randomUUID(),
             name: `AutoAgent-${sequence}`,
             accountId: wallet.accountId,
             bankrollHbar: this.#initialAgentBalanceHbar,
-            reputationScore: 50
+            reputationScore: restoredRep.score
           },
           strategy
         );
