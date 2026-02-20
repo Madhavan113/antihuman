@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#0D0D0D"/>
+  <text x="16" y="24" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="22" fill="#D4917A">S</text>
+  <rect x="6" y="6" width="2" height="2" fill="#D4917A" opacity=".4"/>
+  <rect x="6" y="9" width="2" height="2" fill="#D4917A" opacity=".2"/>
+  <rect x="9" y="6" width="2" height="2" fill="#D4917A" opacity=".2"/>
+  <rect x="24" y="22" width="2" height="2" fill="#D4917A" opacity=".4"/>
+  <rect x="24" y="25" width="2" height="2" fill="#D4917A" opacity=".2"/>
+  <rect x="21" y="25" width="2" height="2" fill="#D4917A" opacity=".2"/>
+</svg>

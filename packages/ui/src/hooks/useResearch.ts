@@ -1,11 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { researchApi } from '../api/research'
 
+const FAST_POLL = 5_000
+const MED_POLL = 8_000
+
 export function useResearchStatus() {
   return useQuery({
     queryKey: ['research', 'status'],
     queryFn: researchApi.status,
-    refetchInterval: 15_000,
+    refetchInterval: FAST_POLL,
   })
 }
 
@@ -13,6 +16,7 @@ export function usePublications(params?: { status?: string; focusArea?: string }
   return useQuery({
     queryKey: ['research', 'publications', params],
     queryFn: () => researchApi.publications(params),
+    refetchInterval: MED_POLL,
   })
 }
 
@@ -21,6 +25,7 @@ export function usePublication(id: string | undefined) {
     queryKey: ['research', 'publication', id],
     queryFn: () => researchApi.publication(id!),
     enabled: !!id,
+    refetchInterval: MED_POLL,
   })
 }
 
@@ -28,6 +33,7 @@ export function useResearchAgents() {
   return useQuery({
     queryKey: ['research', 'agents'],
     queryFn: researchApi.agents,
+    refetchInterval: FAST_POLL,
   })
 }
 
@@ -35,7 +41,7 @@ export function useResearchObservations(limit = 50) {
   return useQuery({
     queryKey: ['research', 'observations', limit],
     queryFn: () => researchApi.observations({ limit }),
-    refetchInterval: 10_000,
+    refetchInterval: MED_POLL,
   })
 }
 

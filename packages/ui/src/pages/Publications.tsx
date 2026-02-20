@@ -43,7 +43,16 @@ function RevealSection({
 function InlineStat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-baseline gap-2">
-      <span className="font-mono text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <span
+        className="font-mono text-sm font-semibold"
+        style={{
+          color: 'var(--text-primary)',
+          transition: 'color 0.3s ease',
+          display: 'inline-block',
+          minWidth: 16,
+        }}
+        key={String(value)}
+      >
         {value}
       </span>
       <span className="label" style={{ fontSize: 9, color: 'var(--text-dim)' }}>
@@ -129,7 +138,7 @@ export function Publications() {
         </div>
 
         {/* Compact inline stats */}
-        <div className="flex items-center gap-6 mt-3 mb-6">
+        <div className="flex items-center gap-6 mt-3 mb-6" style={{ transition: 'opacity 0.3s ease' }}>
           <InlineStat label="PUBLISHED" value={status?.publishedCount ?? 0} />
           <span style={{ color: 'var(--border)' }}>|</span>
           <InlineStat label="TOTAL" value={status?.totalPublications ?? 0} />

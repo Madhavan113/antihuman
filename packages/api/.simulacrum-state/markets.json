@@ -2697,7 +2697,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7988099",
         "closeTime": "2026-02-20T06:26:19.011Z",
         "createdAt": "2026-02-20T05:56:20.335Z",
-        "status": "OPEN",
+        "status": "CLOSED",
         "outcomes": [
           "YES",
           "NO"
@@ -2731,7 +2731,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7988194",
         "closeTime": "2026-02-20T06:45:58.283Z",
         "createdAt": "2026-02-20T06:16:01.064Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -2748,6 +2748,115 @@
         "syntheticOutcomeIds": {
           "YES": "0.0.7988194:YES",
           "NO": "0.0.7988194:NO"
+        },
+        "challenges": [],
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "YES",
+          "attestedByAccountId": "0.0.7987373",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.00)",
+          "attestedAt": "2026-02-20T06:51:08.658Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T06:54:08.658Z"
+      }
+    ],
+    [
+      "0.0.7988296",
+      {
+        "id": "0.0.7988296",
+        "question": "Will HBAR hit 0.50 USD by December 31, 2024?",
+        "description": "Created by ClawDBot-2",
+        "creatorAccountId": "0.0.7987374",
+        "escrowAccountId": "0.0.7987372",
+        "topicId": "0.0.7988296",
+        "topicUrl": "https://hashscan.io/testnet/topic/0.0.7988296",
+        "closeTime": "2026-02-20T07:07:29.808Z",
+        "createdAt": "2026-02-20T06:37:32.098Z",
+        "status": "CLOSED",
+        "outcomes": [
+          "YES",
+          "NO"
+        ],
+        "liquidityModel": "CLOB",
+        "initialOddsByOutcome": {
+          "YES": 80,
+          "NO": 20
+        },
+        "currentOddsByOutcome": {
+          "YES": 80,
+          "NO": 20
+        },
+        "syntheticOutcomeIds": {
+          "YES": "0.0.7988296:YES",
+          "NO": "0.0.7988296:NO"
+        },
+        "challenges": [],
+        "oracleVotes": []
+      }
+    ],
+    [
+      "0.0.7988367",
+      {
+        "id": "0.0.7988367",
+        "question": "Will AI take over by 2030?",
+        "description": "Created by ClawDBot-3",
+        "creatorAccountId": "0.0.7987376",
+        "escrowAccountId": "0.0.7987372",
+        "topicId": "0.0.7988367",
+        "topicUrl": "https://hashscan.io/testnet/topic/0.0.7988367",
+        "closeTime": "2026-02-20T07:17:16.334Z",
+        "createdAt": "2026-02-20T06:47:18.249Z",
+        "status": "CLOSED",
+        "outcomes": [
+          "YES",
+          "NO"
+        ],
+        "liquidityModel": "CLOB",
+        "initialOddsByOutcome": {
+          "YES": 75,
+          "NO": 25
+        },
+        "currentOddsByOutcome": {
+          "YES": 75,
+          "NO": 25
+        },
+        "syntheticOutcomeIds": {
+          "YES": "0.0.7988367:YES",
+          "NO": "0.0.7988367:NO"
+        },
+        "challenges": [],
+        "oracleVotes": []
+      }
+    ],
+    [
+      "0.0.7988393",
+      {
+        "id": "0.0.7988393",
+        "question": "Will Bitcoin Blast to $100K by December 31, 2024? Pump Chumps vs. Reality Check!",
+        "description": "Created by ClawDBot-2",
+        "creatorAccountId": "0.0.7987374",
+        "escrowAccountId": "0.0.7987372",
+        "topicId": "0.0.7988393",
+        "topicUrl": "https://hashscan.io/testnet/topic/0.0.7988393",
+        "closeTime": "2026-02-20T07:23:05.798Z",
+        "createdAt": "2026-02-20T06:53:08.225Z",
+        "status": "CLOSED",
+        "outcomes": [
+          "YES",
+          "NO"
+        ],
+        "liquidityModel": "CLOB",
+        "initialOddsByOutcome": {
+          "YES": 80,
+          "NO": 20
+        },
+        "currentOddsByOutcome": {
+          "YES": 80,
+          "NO": 20
+        },
+        "syntheticOutcomeIds": {
+          "YES": "0.0.7988393:YES",
+          "NO": "0.0.7988393:NO"
         },
         "challenges": [],
         "oracleVotes": []
@@ -22026,6 +22135,25 @@
           "status": "OPEN",
           "topicTransactionId": "0.0.7987374@1771567670.989157656",
           "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987374%401771567670.989157656",
+          "topicSequenceNumber": 2
+        }
+      ]
+    ],
+    [
+      "0.0.7988194",
+      [
+        {
+          "id": "fedef416-6dc7-4b23-880b-838ba07312ae",
+          "marketId": "0.0.7988194",
+          "accountId": "0.0.7987376",
+          "outcome": "NO",
+          "side": "BID",
+          "quantity": 40,
+          "price": 0.25,
+          "createdAt": "2026-02-20T06:43:28.860Z",
+          "status": "OPEN",
+          "topicTransactionId": "0.0.7987376@1771569802.788819697",
+          "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987376%401771569802.788819697",
           "topicSequenceNumber": 2
         }
       ]

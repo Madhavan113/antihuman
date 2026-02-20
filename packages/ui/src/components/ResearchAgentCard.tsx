@@ -32,7 +32,8 @@ export function ResearchAgentCard({ agent }: { agent: ResearchAgentProfile }) {
         background: 'var(--bg-surface)',
         border: `1px solid ${isActive ? `hsl(${hue}, 30%, 25%)` : 'var(--border)'}`,
         borderRadius: 14,
-        transition: 'border-color 0.3s ease',
+        transition: 'border-color 0.6s ease, box-shadow 0.6s ease',
+        boxShadow: isActive ? `0 0 20px hsl(${hue}, 40%, 20%, 0.3), inset 0 1px 0 hsl(${hue}, 30%, 25%, 0.2)` : 'none',
       }}
     >
       {/* Top row: badge + identity */}
