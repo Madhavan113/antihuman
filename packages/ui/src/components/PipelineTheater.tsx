@@ -48,7 +48,8 @@ function AgentDot({
   const isTerminal = STAGES[stageIdx]?.key === 'PUBLISHED'
   const isActive = !isIdle && !isTerminal
   const hasPublished = agent.publicationCount > 0 && isIdle
-  const pct = (stageIdx / (STAGES.length - 1)) * 100
+  const rawPct = stageIdx / (STAGES.length - 1)
+  const pct = 6.25 + rawPct * 87.5
 
   return (
     <div
@@ -179,7 +180,7 @@ export function PipelineTheater({ agents }: { agents: ResearchAgentProfile[] }) 
               position: 'absolute',
               top: 9,
               left: '6.25%',
-              width: `${(maxActiveIdx / (STAGES.length - 1)) * 87.5}%`,
+              width: `${(maxActiveIdx / (STAGES.length - 1)) * 87.5 + 0.5}%`,
               height: 1,
               background: 'linear-gradient(90deg, var(--accent-dim), var(--accent))',
               transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -194,7 +195,7 @@ export function PipelineTheater({ agents }: { agents: ResearchAgentProfile[] }) 
             key={i}
             style={{
               position: 'absolute',
-              left: `${(i / (STAGES.length - 1)) * 100}%`,
+              left: `${6.25 + (i / (STAGES.length - 1)) * 87.5}%`,
               top: 5,
               width: 1,
               height: 9,
