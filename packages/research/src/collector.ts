@@ -85,6 +85,7 @@ export class DataCollector {
   #unsubscribe: (() => void) | null = null;
   readonly #maxBufferSize: number;
   readonly #maxSealedWindows: number;
+  #sealedObsCount = 0;
 
   constructor(options?: { maxBufferSize?: number; maxSealedWindows?: number }) {
     this.#maxBufferSize = options?.maxBufferSize ?? MAX_BUFFER_SIZE;
@@ -97,6 +98,10 @@ export class DataCollector {
 
   get sealedWindowCount(): number {
     return this.#sealedWindows.length;
+  }
+
+  get totalObservationCount(): number {
+    return this.#sealedObsCount + this.#buffer.length;
   }
 
   subscribe(eventBus: EventBusLike): void {
@@ -197,10 +202,12 @@ export class DataCollector {
     const window = createWindow([...this.#buffer]);
 
     if (this.#buffer.length > 0) {
+      this.#sealedObsCount += this.#buffer.length;
       this.#sealedWindows.push(window);
 
       if (this.#sealedWindows.length > this.#maxSealedWindows) {
-        this.#sealedWindows.splice(0, this.#sealedWindows.length - this.#maxSealedWindows);
+        const removed = this.#sealedWindows.splice(0, this.#sealedWindows.length - this.#maxSealedWindows);
+        for (const w of removed) this.#sealedObsCount -= w.observations.length;
       }
     }
 

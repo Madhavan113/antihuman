@@ -62,7 +62,6 @@ export class ResearchEngine {
   #lastError: string | null = null;
   #activeTick = false;
   #hydrated = false;
-  #totalObservations = 0;
 
   constructor(options: ResearchEngineOptions) {
     this.#eventBus = options.eventBus;
@@ -102,7 +101,7 @@ export class ResearchEngine {
       tickMs: this.#tickMs,
       tickCount: this.#tickCount,
       agentCount: this.#agents.length,
-      totalObservations: this.#totalObservations,
+      totalObservations: this.#collector.totalObservationCount,
       totalPublications: publications.length,
       publishedCount: published.length,
       retractedCount: retracted.length,
@@ -168,7 +167,6 @@ export class ResearchEngine {
       const now = new Date();
 
       const window = this.#collector.flush();
-      this.#totalObservations += window.observations.length;
 
       this.#eventBus.publish("research.tick", {
         tickCount: this.#tickCount,
@@ -274,8 +272,7 @@ export class ResearchEngine {
 
     this.#collector.sortBuffer();
     this.#hydrated = true;
-    this.#totalObservations = this.#collector.bufferSize;
-    console.log(`[research-engine] Hydrated ${this.#totalObservations} observations from stores`);
+    console.log(`[research-engine] Hydrated ${this.#collector.totalObservationCount} observations from stores`);
   }
 
   #ensureAgents(): void {

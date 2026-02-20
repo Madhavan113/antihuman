@@ -121,12 +121,16 @@ export class DeepResearchAgent {
   completePipeline(publication: ResearchPublication): void {
     this.#previousPublications.push(publication);
     this.profile.publicationCount += 1;
-    this.profile.observationCount += publication.dataWindow.observationCount;
-    if (publication.evaluation) {
-      const totalScore =
-        this.profile.averageEvalScore * (this.profile.publicationCount - 1) +
-        publication.evaluation.overallScore;
-      this.profile.averageEvalScore = totalScore / this.profile.publicationCount;
+    this.profile.observationCount = publication.dataWindow.observationCount;
+
+    const publishedPubs = this.#previousPublications.filter(
+      (p) => p.status === "PUBLISHED" && p.evaluation
+    );
+    if (publishedPubs.length > 0) {
+      const totalScore = publishedPubs.reduce(
+        (sum, p) => sum + (p.evaluation?.overallScore ?? 0), 0
+      );
+      this.profile.averageEvalScore = totalScore / publishedPubs.length;
     }
 
     this.#pipeline = null;
