@@ -336,6 +336,38 @@ export function createApiServer(options: CreateApiServerOptions = {}): ApiServer
   }
   app.use(createAutonomyMutationGuard({ strictMutations }));
 
+  app.get("/", (_request, response) => {
+    response.json({
+      service: "@simulacrum/api",
+      version: "0.1.0",
+      status: "ok",
+      agentPlatform: agentPlatform.enabled,
+      endpoints: {
+        health: "GET  /health",
+        docs: "GET  /docs",
+        auth: {
+          register: "POST /agent/v1/auth/register",
+          challenge: "POST /agent/v1/auth/challenge",
+          verify: "POST /agent/v1/auth/verify",
+          refresh: "POST /agent/v1/auth/refresh",
+        },
+        agent: {
+          me: "GET  /agent/v1/me",
+          markets: "GET  /agent/v1/markets",
+          walletBalance: "GET  /agent/v1/wallet/balance",
+          faucet: "POST /agent/v1/wallet/faucet/request",
+        },
+        public: {
+          markets: "GET  /markets",
+          agents: "GET  /agents",
+          reputation: "GET  /reputation/:accountId",
+          research: "GET  /research/observations",
+          ws: "WS   /ws",
+        },
+      },
+    });
+  });
+
   app.get("/health", (_request, response) => {
     response.json({ ok: true, service: "@simulacrum/api" });
   });
