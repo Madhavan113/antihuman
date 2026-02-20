@@ -394,7 +394,11 @@ export function createApiServer(options: CreateApiServerOptions = {}): ApiServer
         await autonomyEngine.start();
       }
       if (clawdbotNetwork) {
-        await clawdbotNetwork.start();
+        try {
+          await clawdbotNetwork.start();
+        } catch (error) {
+          console.error("[server] ClawDBot network failed to start (server continues):", error instanceof Error ? error.message : error);
+        }
       }
 
       const shouldRunLifecycle =

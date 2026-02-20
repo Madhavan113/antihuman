@@ -224,8 +224,12 @@ export function createClawdbotsRouter(network: ClawdbotNetwork | null): Router {
       return;
     }
 
-    await network.start();
-    response.json(network.getStatus());
+    try {
+      await network.start();
+      response.json(network.getStatus());
+    } catch (error) {
+      response.status(500).json({ error: (error as Error).message });
+    }
   });
 
   router.post("/stop", async (_request, response) => {
