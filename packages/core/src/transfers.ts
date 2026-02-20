@@ -44,12 +44,20 @@ export class HederaTransferError extends Error {
   }
 }
 
+function extractErrorDetail(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
 function asHederaTransferError(message: string, error: unknown): HederaTransferError {
   if (error instanceof HederaTransferError) {
     return error;
   }
 
-  return new HederaTransferError(message, error);
+  const detail = extractErrorDetail(error);
+  return new HederaTransferError(`${message} ${detail}`, error);
 }
 
 function validateMultiTransfer(transfers: readonly HbarTransfer[]): void {

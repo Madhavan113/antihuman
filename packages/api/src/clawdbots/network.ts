@@ -1826,6 +1826,19 @@ export class ClawdbotNetwork {
     const persisted = this.#walletStore.get();
 
     if (this.#runtimeBots.size === 0 && persisted.wallets.length > 0) {
+      let operatorHbar = Infinity;
+      try {
+        const opBal = await getBalance(this.#operatorAccountId, {
+          client: this.getOperatorClient()
+        });
+        operatorHbar = opBal.hbar;
+        console.log(`[clawdbot] Operator ${this.#operatorAccountId} balance: ${operatorHbar.toFixed(2)} HBAR`);
+      } catch (error) {
+        console.warn(
+          `[clawdbot] Could not query operator balance: ${error instanceof Error ? error.message : error}`
+        );
+      }
+
       for (let index = 0; index < persisted.wallets.length && this.#runtimeBots.size < this.#targetBots; index += 1) {
         const wallet = persisted.wallets[index]!;
         const sequence = index + 1;
@@ -1847,17 +1860,40 @@ export class ClawdbotNetwork {
           const minBalance = this.#initialBotBalanceHbar * 0.25;
           if (balance.hbar < minBalance) {
             const topUp = this.#initialBotBalanceHbar - balance.hbar;
-            await transferHbar(this.#operatorAccountId, wallet.accountId, topUp, {
-              client: this.getOperatorClient()
-            });
-            actualBalance = balance.hbar + topUp;
-            console.log(
-              `[clawdbot] Topped up ${wallet.accountId} with ${topUp.toFixed(2)} HBAR (was ${balance.hbar.toFixed(2)}).`
-            );
+
+            if (operatorHbar < topUp + 5) {
+              console.warn(
+                `[clawdbot] Skipping top-up for ${wallet.accountId}: operator balance too low (${operatorHbar.toFixed(2)} HBAR, need ${topUp.toFixed(2)}).`
+              );
+            } else {
+              let funded = false;
+              for (let attempt = 0; attempt < 3 && !funded; attempt += 1) {
+                try {
+                  if (attempt > 0) {
+                    await new Promise((r) => setTimeout(r, 1500 * attempt));
+                  }
+                  await transferHbar(this.#operatorAccountId, wallet.accountId, topUp, {
+                    client: this.getOperatorClient()
+                  });
+                  operatorHbar -= topUp;
+                  actualBalance = balance.hbar + topUp;
+                  funded = true;
+                  console.log(
+                    `[clawdbot] Topped up ${wallet.accountId} with ${topUp.toFixed(2)} HBAR (was ${balance.hbar.toFixed(2)}).`
+                  );
+                } catch (retryErr) {
+                  if (attempt === 2) {
+                    console.warn(
+                      `[clawdbot] Top-up failed for ${wallet.accountId} after 3 attempts: ${retryErr instanceof Error ? retryErr.message : retryErr}`
+                    );
+                  }
+                }
+              }
+            }
           }
         } catch (error) {
           console.warn(
-            `[clawdbot] Could not check/top-up balance for ${wallet.accountId}: ${error instanceof Error ? error.message : error}`
+            `[clawdbot] Could not check balance for ${wallet.accountId}: ${error instanceof Error ? error.message : error}`
           );
         }
 
@@ -2654,6 +2690,16 @@ export class ClawdbotNetwork {
     const internalMinBalance = this.#initialBotBalanceHbar * 0.25;
     const communityMinBalance = 10;
 
+    let operatorHbar = Infinity;
+    try {
+      const opBal = await getBalance(this.#operatorAccountId, {
+        client: this.getOperatorClient()
+      });
+      operatorHbar = opBal.hbar;
+    } catch {
+      // If we can't check operator balance, proceed cautiously
+    }
+
     for (const runtime of this.#runtimeBots.values()) {
       const isCommunity = runtime.origin === "community";
       const threshold = isCommunity ? communityMinBalance : internalMinBalance;
@@ -2665,9 +2711,18 @@ export class ClawdbotNetwork {
 
         if (balance.hbar < threshold) {
           const topUp = this.#initialBotBalanceHbar - balance.hbar;
+
+          if (operatorHbar < topUp + 5) {
+            console.warn(
+              `[clawdbot] Skipping periodic top-up for ${runtime.agent.name}: operator balance too low (${operatorHbar.toFixed(2)} HBAR).`
+            );
+            continue;
+          }
+
           await transferHbar(this.#operatorAccountId, runtime.wallet.accountId, topUp, {
             client: this.getOperatorClient()
           });
+          operatorHbar -= topUp;
           runtime.agent.adjustBankroll(topUp);
           console.log(
             `[clawdbot] Topped up ${runtime.agent.name} (${runtime.wallet.accountId}) with ${topUp.toFixed(2)} HBAR (was ${balance.hbar.toFixed(2)}).`
@@ -2683,8 +2738,10 @@ export class ClawdbotNetwork {
         } else {
           runtime.agent.adjustBankroll(balance.hbar - runtime.agent.bankrollHbar);
         }
-      } catch {
-        // Best-effort; don't block the tick
+      } catch (error) {
+        console.warn(
+          `[clawdbot] Top-up sweep failed for ${runtime.agent.name} (${runtime.wallet.accountId}): ${error instanceof Error ? error.message : error}`
+        );
       }
     }
 
