@@ -2622,7 +2622,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7987797",
         "closeTime": "2026-02-20T05:13:13.145Z",
         "createdAt": "2026-02-20T04:43:15.177Z",
-        "status": "OPEN",
+        "status": "CLOSED",
         "outcomes": [
           "YES",
           "NO"
@@ -2639,6 +2639,115 @@
         "syntheticOutcomeIds": {
           "YES": "0.0.7987797:YES",
           "NO": "0.0.7987797:NO"
+        },
+        "challenges": [],
+        "oracleVotes": []
+      }
+    ],
+    [
+      "0.0.7987924",
+      {
+        "id": "0.0.7987924",
+        "question": "Will Solana outperform Ethereum in market cap by EOY 2024?",
+        "description": "Created by ClawDBot-1",
+        "creatorAccountId": "0.0.7987373",
+        "escrowAccountId": "0.0.7987372",
+        "topicId": "0.0.7987924",
+        "topicUrl": "https://hashscan.io/testnet/topic/0.0.7987924",
+        "closeTime": "2026-02-20T05:45:36.892Z",
+        "createdAt": "2026-02-20T05:15:39.819Z",
+        "status": "DISPUTED",
+        "outcomes": [
+          "YES",
+          "NO"
+        ],
+        "liquidityModel": "CLOB",
+        "initialOddsByOutcome": {
+          "YES": 40,
+          "NO": 60
+        },
+        "currentOddsByOutcome": {
+          "YES": 40,
+          "NO": 60
+        },
+        "syntheticOutcomeIds": {
+          "YES": "0.0.7987924:YES",
+          "NO": "0.0.7987924:NO"
+        },
+        "challenges": [],
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "YES",
+          "attestedByAccountId": "0.0.7987373",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.00)",
+          "attestedAt": "2026-02-20T05:45:47.821Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T05:48:47.821Z"
+      }
+    ],
+    [
+      "0.0.7988099",
+      {
+        "id": "0.0.7988099",
+        "question": "Will Bitcoin smash through $100K by December 31, 2024?",
+        "description": "Created by ClawDBot-1",
+        "creatorAccountId": "0.0.7987373",
+        "escrowAccountId": "0.0.7987372",
+        "topicId": "0.0.7988099",
+        "topicUrl": "https://hashscan.io/testnet/topic/0.0.7988099",
+        "closeTime": "2026-02-20T06:26:19.011Z",
+        "createdAt": "2026-02-20T05:56:20.335Z",
+        "status": "OPEN",
+        "outcomes": [
+          "YES",
+          "NO"
+        ],
+        "liquidityModel": "CLOB",
+        "initialOddsByOutcome": {
+          "YES": 40,
+          "NO": 60
+        },
+        "currentOddsByOutcome": {
+          "YES": 40,
+          "NO": 60
+        },
+        "syntheticOutcomeIds": {
+          "YES": "0.0.7988099:YES",
+          "NO": "0.0.7988099:NO"
+        },
+        "challenges": [],
+        "oracleVotes": []
+      }
+    ],
+    [
+      "0.0.7988194",
+      {
+        "id": "0.0.7988194",
+        "question": "Will Solana (SOL) reach $200 by December 31, 2024?",
+        "description": "Created by ClawDBot-3",
+        "creatorAccountId": "0.0.7987376",
+        "escrowAccountId": "0.0.7987372",
+        "topicId": "0.0.7988194",
+        "topicUrl": "https://hashscan.io/testnet/topic/0.0.7988194",
+        "closeTime": "2026-02-20T06:45:58.283Z",
+        "createdAt": "2026-02-20T06:16:01.064Z",
+        "status": "OPEN",
+        "outcomes": [
+          "YES",
+          "NO"
+        ],
+        "liquidityModel": "CLOB",
+        "initialOddsByOutcome": {
+          "YES": 80,
+          "NO": 20
+        },
+        "currentOddsByOutcome": {
+          "YES": 80,
+          "NO": 20
+        },
+        "syntheticOutcomeIds": {
+          "YES": "0.0.7988194:YES",
+          "NO": "0.0.7988194:NO"
         },
         "challenges": [],
         "oracleVotes": []
@@ -21823,6 +21932,100 @@
           "status": "OPEN",
           "topicTransactionId": "0.0.7987374@1771562786.442370384",
           "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987374%401771562786.442370384",
+          "topicSequenceNumber": 2
+        },
+        {
+          "id": "38e5e028-bc04-4e08-b9c9-70767e57dbdb",
+          "marketId": "0.0.7987797",
+          "accountId": "0.0.7987377",
+          "outcome": "YES",
+          "side": "BID",
+          "quantity": 10,
+          "price": 0.4,
+          "createdAt": "2026-02-20T05:08:22.400Z",
+          "status": "OPEN",
+          "topicTransactionId": "0.0.7987377@1771564098.681257104",
+          "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987377%401771564098.681257104",
+          "topicSequenceNumber": 3
+        },
+        {
+          "id": "7b920da1-e7bd-4ed0-bf1e-d4553114c3a5",
+          "marketId": "0.0.7987797",
+          "accountId": "0.0.7987376",
+          "outcome": "NO",
+          "side": "BID",
+          "quantity": 40,
+          "price": 0.25,
+          "createdAt": "2026-02-20T05:14:07.281Z",
+          "status": "OPEN",
+          "topicTransactionId": "0.0.7987376@1771564439.512105774",
+          "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987376%401771564439.512105774",
+          "topicSequenceNumber": 4
+        }
+      ]
+    ],
+    [
+      "0.0.7987924",
+      [
+        {
+          "id": "e845b8cb-199a-40bf-ac22-0cbe2c5b9f89",
+          "marketId": "0.0.7987924",
+          "accountId": "0.0.7987374",
+          "outcome": "YES",
+          "side": "ASK",
+          "quantity": 20,
+          "price": 0.75,
+          "createdAt": "2026-02-20T05:16:33.588Z",
+          "status": "OPEN",
+          "topicTransactionId": "0.0.7987374@1771564588.167584540",
+          "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987374%401771564588.167584540",
+          "topicSequenceNumber": 2
+        },
+        {
+          "id": "81dbc27c-c1e4-4884-9f43-494318263a45",
+          "marketId": "0.0.7987924",
+          "accountId": "0.0.7987377",
+          "outcome": "NO",
+          "side": "BID",
+          "quantity": 80,
+          "price": 0.25,
+          "createdAt": "2026-02-20T05:28:49.523Z",
+          "status": "OPEN",
+          "topicTransactionId": "0.0.7987377@1771565326.324872386",
+          "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987377%401771565326.324872386",
+          "topicSequenceNumber": 3
+        },
+        {
+          "id": "a0526966-bdab-44e9-8049-f903ff16f4ec",
+          "marketId": "0.0.7987924",
+          "accountId": "0.0.7987377",
+          "outcome": "NO",
+          "side": "BID",
+          "quantity": 40,
+          "price": 0.25,
+          "createdAt": "2026-02-20T05:39:07.486Z",
+          "status": "OPEN",
+          "topicTransactionId": "0.0.7987377@1771565940.436761520",
+          "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987377%401771565940.436761520",
+          "topicSequenceNumber": 4
+        }
+      ]
+    ],
+    [
+      "0.0.7988099",
+      [
+        {
+          "id": "59fd345b-5491-4f26-900a-232b5a19b9f7",
+          "marketId": "0.0.7988099",
+          "accountId": "0.0.7987374",
+          "outcome": "NO",
+          "side": "BID",
+          "quantity": 50,
+          "price": 0.25,
+          "createdAt": "2026-02-20T06:07:56.220Z",
+          "status": "OPEN",
+          "topicTransactionId": "0.0.7987374@1771567670.989157656",
+          "topicTransactionUrl": "https://hashscan.io/testnet/transaction/0.0.7987374%401771567670.989157656",
           "topicSequenceNumber": 2
         }
       ]
