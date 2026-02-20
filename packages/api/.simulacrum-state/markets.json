@@ -1835,7 +1835,18 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976067"
         },
         "challenges": [],
-        "oracleVotes": [],
+        "oracleVotes": [
+          {
+            "id": "e1f68a6f-9c05-4a06-9e37-9e12c5f724f3",
+            "marketId": "0.0.7976065",
+            "voterAccountId": "0.0.7987031",
+            "outcome": "NO",
+            "confidence": 0.5833333333333334,
+            "reason": "Reputation-weighted peer oracle vote",
+            "reputationScore": 50,
+            "createdAt": "2026-02-20T02:08:07.992Z"
+          }
+        ],
         "selfAttestation": {
           "proposedOutcome": "NO",
           "attestedByAccountId": "0.0.7976159",
@@ -1857,7 +1868,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976120",
         "closeTime": "2026-02-18T23:56:43.921Z",
         "createdAt": "2026-02-18T23:41:49.405Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -1880,7 +1891,14 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976122"
         },
         "challenges": [],
-        "oracleVotes": []
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "YES",
+          "attestedByAccountId": "0.0.7987031",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.67)",
+          "attestedAt": "2026-02-20T02:08:10.402Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T02:11:10.402Z"
       }
     ],
     [
@@ -1895,7 +1913,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976128",
         "closeTime": "2026-02-18T23:57:37.353Z",
         "createdAt": "2026-02-18T23:42:42.878Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -1918,7 +1936,14 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976130"
         },
         "challenges": [],
-        "oracleVotes": []
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "NO",
+          "attestedByAccountId": "0.0.7987031",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.75)",
+          "attestedAt": "2026-02-20T02:08:12.648Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T02:11:12.648Z"
       }
     ],
     [
@@ -1933,7 +1958,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976140",
         "closeTime": "2026-02-18T23:58:57.355Z",
         "createdAt": "2026-02-18T23:44:02.721Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -1956,7 +1981,14 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976142"
         },
         "challenges": [],
-        "oracleVotes": []
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "YES",
+          "attestedByAccountId": "0.0.7987031",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.60)",
+          "attestedAt": "2026-02-20T02:08:13.814Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T02:11:13.814Z"
       }
     ],
     [
@@ -1971,7 +2003,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976154",
         "closeTime": "2026-02-18T23:59:47.355Z",
         "createdAt": "2026-02-18T23:44:52.666Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -1994,7 +2026,14 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976156"
         },
         "challenges": [],
-        "oracleVotes": []
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "YES",
+          "attestedByAccountId": "0.0.7987031",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.75)",
+          "attestedAt": "2026-02-20T02:08:16.031Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T02:11:16.031Z"
       }
     ],
     [
@@ -2009,7 +2048,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976164",
         "closeTime": "2026-02-19T00:00:29.123Z",
         "createdAt": "2026-02-18T23:45:34.509Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -2032,7 +2071,14 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976167"
         },
         "challenges": [],
-        "oracleVotes": []
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "NO",
+          "attestedByAccountId": "0.0.7987031",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.63)",
+          "attestedAt": "2026-02-20T02:08:18.315Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T02:11:18.315Z"
       }
     ],
     [
@@ -2047,7 +2093,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976170",
         "closeTime": "2026-02-19T00:01:06.116Z",
         "createdAt": "2026-02-18T23:46:11.684Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -2070,7 +2116,14 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976173"
         },
         "challenges": [],
-        "oracleVotes": []
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "NO",
+          "attestedByAccountId": "0.0.7987031",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.89)",
+          "attestedAt": "2026-02-20T02:08:20.672Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T02:11:20.672Z"
       }
     ],
     [
@@ -2085,7 +2138,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976177",
         "closeTime": "2026-02-19T00:01:56.116Z",
         "createdAt": "2026-02-18T23:47:01.396Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -2108,7 +2161,14 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976179"
         },
         "challenges": [],
-        "oracleVotes": []
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "NO",
+          "attestedByAccountId": "0.0.7987031",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.67)",
+          "attestedAt": "2026-02-20T02:08:22.860Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T02:11:22.860Z"
       }
     ],
     [
@@ -2122,7 +2182,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976184",
         "closeTime": "2026-02-19T23:47:28.178Z",
         "createdAt": "2026-02-18T23:47:33.430Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -2148,7 +2208,14 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976186"
         },
         "challenges": [],
-        "oracleVotes": []
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "NO",
+          "attestedByAccountId": "0.0.7987031",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.67)",
+          "attestedAt": "2026-02-20T02:08:25.095Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T02:11:25.095Z"
       }
     ],
     [
@@ -2163,7 +2230,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976189",
         "closeTime": "2026-02-19T00:03:06.119Z",
         "createdAt": "2026-02-18T23:48:11.703Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -2186,7 +2253,14 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976191"
         },
         "challenges": [],
-        "oracleVotes": []
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "NO",
+          "attestedByAccountId": "0.0.7987031",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 1.00)",
+          "attestedAt": "2026-02-20T02:08:27.255Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T02:11:27.255Z"
       }
     ],
     [
@@ -2200,7 +2274,7 @@
         "topicUrl": "https://hashscan.io/testnet/topic/0.0.7976193",
         "closeTime": "2026-02-19T00:48:57.008Z",
         "createdAt": "2026-02-18T23:49:02.758Z",
-        "status": "OPEN",
+        "status": "DISPUTED",
         "outcomes": [
           "YES",
           "NO"
@@ -2226,7 +2300,14 @@
           "NO": "https://hashscan.io/testnet/token/0.0.7976195"
         },
         "challenges": [],
-        "oracleVotes": []
+        "oracleVotes": [],
+        "selfAttestation": {
+          "proposedOutcome": "YES",
+          "attestedByAccountId": "0.0.7987031",
+          "reason": "ClawDBot self-attest (0 trusted voters, confidence 0.67)",
+          "attestedAt": "2026-02-20T02:08:29.346Z"
+        },
+        "challengeWindowEndsAt": "2026-02-20T02:11:29.346Z"
       }
     ]
   ],

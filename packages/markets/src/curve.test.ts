@@ -13,21 +13,6 @@ describe("weighted curve markets", () => {
       transactionId: "0.0.1001@1700000000.000001",
       transactionUrl: "https://hashscan.io/testnet/transaction/tx1"
     });
-    const createTokenMock = vi
-      .fn()
-      .mockResolvedValueOnce({
-        tokenId: "0.0.8001",
-        tokenUrl: "https://hashscan.io/testnet/token/0.0.8001",
-        transactionId: "0.0.1001@1700000000.000002",
-        transactionUrl: "https://hashscan.io/testnet/transaction/tx2"
-      })
-      .mockResolvedValueOnce({
-        tokenId: "0.0.8002",
-        tokenUrl: "https://hashscan.io/testnet/token/0.0.8002",
-        transactionId: "0.0.1001@1700000000.000003",
-        transactionUrl: "https://hashscan.io/testnet/transaction/tx3"
-      });
-
     const created = await createMarket(
       {
         question: "Will low-liquidity curve update?",
@@ -40,7 +25,6 @@ describe("weighted curve markets", () => {
         store,
         deps: {
           createTopic: createTopicMock,
-          createFungibleToken: createTokenMock,
           submitMessage: vi.fn().mockResolvedValue({
             topicId: "0.0.7001",
             topicUrl: "https://hashscan.io/testnet/topic/0.0.7001",

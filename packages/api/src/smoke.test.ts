@@ -38,11 +38,7 @@ vi.mock("@simulacrum/markets", () => ({
       createdAt: "2026-02-18T00:00:00.000Z",
       status: "OPEN",
       outcomes: input.outcomes ?? ["YES", "NO"],
-      outcomeTokenIds: { YES: "0.0.8101", NO: "0.0.8102" },
-      outcomeTokenUrls: {
-        YES: "https://hashscan.io/testnet/token/0.0.8101",
-        NO: "https://hashscan.io/testnet/token/0.0.8102"
-      }
+      syntheticOutcomeIds: { YES: `${id}:YES`, NO: `${id}:NO` }
     };
 
     marketState.markets.set(id, market);

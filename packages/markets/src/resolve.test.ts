@@ -16,11 +16,7 @@ function seedDisputedMarket(): Market {
     createdAt: "2026-02-18T00:00:00.000Z",
     status: "DISPUTED",
     outcomes: ["YES", "NO"],
-    outcomeTokenIds: { YES: "0.0.8001", NO: "0.0.8002" },
-    outcomeTokenUrls: {
-      YES: "https://hashscan.io/testnet/token/0.0.8001",
-      NO: "https://hashscan.io/testnet/token/0.0.8002"
-    },
+    syntheticOutcomeIds: { YES: "0.0.7001:YES", NO: "0.0.7001:NO" },
     selfAttestation: {
       proposedOutcome: "YES",
       attestedByAccountId: "0.0.1001",

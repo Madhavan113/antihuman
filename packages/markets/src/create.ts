@@ -1,4 +1,4 @@
-import { createFungibleToken, createTopic, submitMessage, validateNonEmptyString } from "@simulacrum/core";
+import { createTopic, submitMessage, validateNonEmptyString } from "@simulacrum/core";
 import type { Client } from "@hashgraph/sdk";
 
 import { getMarketStore, persistMarketStore, type MarketStore } from "./store.js";
@@ -12,7 +12,6 @@ import {
 
 interface CreateMarketDependencies {
   createTopic: typeof createTopic;
-  createFungibleToken: typeof createFungibleToken;
   submitMessage: typeof submitMessage;
   now: () => Date;
 }
@@ -207,11 +206,6 @@ function assertCloseTime(closeTime: string): void {
   }
 }
 
-function shortSymbol(question: string, outcome: string): string {
-  const prefix = question.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 5);
-  return `${outcome.slice(0, 3)}${prefix}`.slice(0, 10);
-}
-
 function toMarketError(message: string, error: unknown): MarketError {
   if (error instanceof MarketError) {
     return error;
@@ -240,7 +234,6 @@ export async function createMarket(
   const store = getMarketStore(options.store);
   const deps: CreateMarketDependencies = {
     createTopic,
-    createFungibleToken,
     submitMessage,
     now: () => new Date(),
     ...options.deps
@@ -251,24 +244,9 @@ export async function createMarket(
       client: options.client
     });
 
-    const outcomeTokenIds: Record<string, string> = {};
-    const outcomeTokenUrls: Record<string, string> = {};
-
+    const syntheticOutcomeIds: Record<string, string> = {};
     for (const outcome of outcomes) {
-      const token = await deps.createFungibleToken(
-        `${input.question} - ${outcome}`,
-        shortSymbol(input.question, outcome),
-        0,
-        2,
-        {
-          client: options.client,
-          treasuryAccountId: input.creatorAccountId,
-          memo: `Market ${topic.topicId} ${outcome}`
-        }
-      );
-
-      outcomeTokenIds[outcome] = token.tokenId;
-      outcomeTokenUrls[outcome] = token.tokenUrl;
+      syntheticOutcomeIds[outcome] = `${topic.topicId}:${outcome}`;
     }
 
     const nowIso = deps.now().toISOString();
@@ -288,8 +266,7 @@ export async function createMarket(
       initialOddsByOutcome,
       currentOddsByOutcome,
       curveState,
-      outcomeTokenIds,
-      outcomeTokenUrls,
+      syntheticOutcomeIds,
       challenges: [],
       oracleVotes: []
     };

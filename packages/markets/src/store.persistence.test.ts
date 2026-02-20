@@ -38,11 +38,7 @@ describe("market store persistence", () => {
       createdAt: "2026-02-18T00:00:00.000Z",
       status: "OPEN",
       outcomes: ["YES", "NO"],
-      outcomeTokenIds: { YES: "0.0.7001", NO: "0.0.7002" },
-      outcomeTokenUrls: {
-        YES: "https://hashscan.io/testnet/token/0.0.7001",
-        NO: "https://hashscan.io/testnet/token/0.0.7002"
-      }
+      syntheticOutcomeIds: { YES: "0.0.123:YES", NO: "0.0.123:NO" }
     });
     modA.persistMarketStore(storeA);
 

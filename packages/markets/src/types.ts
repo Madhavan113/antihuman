@@ -51,8 +51,9 @@ export interface Market {
   initialOddsByOutcome?: Record<string, number>;
   currentOddsByOutcome?: Record<string, number>;
   curveState?: MarketCurveState;
-  outcomeTokenIds: Record<string, string>;
-  outcomeTokenUrls: Record<string, string>;
+  outcomeTokenIds?: Record<string, string>;
+  outcomeTokenUrls?: Record<string, string>;
+  syntheticOutcomeIds?: Record<string, string>;
   resolvedOutcome?: string;
   resolvedAt?: string;
   resolvedByAccountId?: string;

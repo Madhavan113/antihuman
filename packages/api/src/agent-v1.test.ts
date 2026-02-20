@@ -82,11 +82,7 @@ vi.mock("@simulacrum/markets", () => ({
       outcomes: ["YES", "NO"],
       topicId: "0.0.8080",
       topicUrl: "https://hashscan.io/testnet/topic/0.0.8080",
-      outcomeTokenIds: { YES: "0.0.1", NO: "0.0.2" },
-      outcomeTokenUrls: {
-        YES: "https://hashscan.io/testnet/token/0.0.1",
-        NO: "https://hashscan.io/testnet/token/0.0.2"
-      }
+      syntheticOutcomeIds: { YES: "0.0.8080:YES", NO: "0.0.8080:NO" }
     };
     state.marketMap.set("0.0.8080", market);
     return {
