@@ -2359,13 +2359,16 @@ export class ClawdbotNetwork {
           actionType: action.type
         });
       } catch (error) {
-        const rootCause =
-          error instanceof Error && error.cause instanceof Error
-            ? error.cause.message
-            : undefined;
-        const message = rootCause
-          ? `${error instanceof Error ? error.message : String(error)} Cause: ${rootCause}`
-          : error instanceof Error ? error.message : String(error);
+        const parts: string[] = [];
+        let current: unknown = error;
+        while (current instanceof Error) {
+          parts.push(current.message);
+          current = current.cause;
+        }
+        if (current !== undefined && current !== null && !(current instanceof Error)) {
+          parts.push(String(current));
+        }
+        const message = parts.join(" → ");
         console.error(`[clawdbot] Goal failed for ${runtime.agent.name}: ${message}`);
         const failedAt = new Date().toISOString();
         const failed: ClawdbotGoal = {
