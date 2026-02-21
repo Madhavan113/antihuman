@@ -952,6 +952,15 @@ export class ClawdbotNetwork {
     return output;
   }
 
+  getHederaClientForAccount(accountId: string): ReturnType<typeof createHederaClient> | null {
+    for (const runtime of this.#runtimeBots.values()) {
+      if (runtime.wallet.accountId === accountId) {
+        return this.getClient(runtime.wallet);
+      }
+    }
+    return null;
+  }
+
   async createMarketAsBot(
     botId: string,
     input: Omit<CreateClawdbotEventMarketInput, "creatorBotId">

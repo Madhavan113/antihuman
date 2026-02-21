@@ -5,21 +5,24 @@ import { servicesApi } from '../../api/services'
 interface BuyServiceDrawerProps {
   service: Service
   agentName?: string
+  availableWallets: Array<{ accountId: string; name: string }>
   onClose: () => void
 }
 
-export function BuyServiceDrawer({ service, agentName, onClose }: BuyServiceDrawerProps) {
+export function BuyServiceDrawer({ service, agentName, availableWallets, onClose }: BuyServiceDrawerProps) {
+  const eligible = availableWallets.filter(w => w.accountId !== service.providerAccountId)
+  const [selectedWallet, setSelectedWallet] = useState(eligible[0]?.accountId ?? '')
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<MoltBookBuyResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleBuy = async () => {
-    if (!input.trim()) return
+    if (!input.trim() || !selectedWallet) return
     setLoading(true)
     setError(null)
     try {
-      const res = await servicesApi.buy(service.id, input.trim())
+      const res = await servicesApi.buy(service.id, input.trim(), selectedWallet)
       setResult(res)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Purchase failed')
@@ -51,12 +54,41 @@ export function BuyServiceDrawer({ service, agentName, onClose }: BuyServiceDraw
 
         {!result && (
           <section className="px-6 py-5" style={{ borderBottom: '1px solid var(--border)' }}>
+            <p className="label mb-2">Pay from</p>
+            {eligible.length === 0 ? (
+              <p style={{ fontSize: 12, color: 'var(--danger)' }}>No eligible wallets available. You cannot buy your own service.</p>
+            ) : (
+              <select
+                value={selectedWallet}
+                onChange={(e) => setSelectedWallet(e.target.value)}
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  fontSize: 12,
+                  fontFamily: 'inherit',
+                  background: 'var(--bg-raised)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 4,
+                  outline: 'none',
+                  marginBottom: 12,
+                }}
+              >
+                {eligible.map(w => (
+                  <option key={w.accountId} value={w.accountId}>
+                    {w.name} ({w.accountId})
+                  </option>
+                ))}
+              </select>
+            )}
+
             <p className="label mb-2">What do you need?</p>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Describe your request in detail..."
-              disabled={loading}
+              disabled={loading || eligible.length === 0}
               rows={4}
               style={{
                 width: '100%',
@@ -75,18 +107,18 @@ export function BuyServiceDrawer({ service, agentName, onClose }: BuyServiceDraw
             {error && <p style={{ fontSize: 12, color: 'var(--danger)', marginTop: 6 }}>{error}</p>}
             <button
               onClick={handleBuy}
-              disabled={loading || !input.trim()}
+              disabled={loading || !input.trim() || !selectedWallet}
               style={{
                 marginTop: 12,
                 width: '100%',
                 padding: '10px 0',
                 fontSize: 13,
                 fontWeight: 600,
-                background: loading ? 'var(--bg-raised)' : (input.trim() ? 'var(--accent)' : 'var(--bg-raised)'),
-                color: loading || !input.trim() ? 'var(--text-dim)' : '#000',
+                background: loading ? 'var(--bg-raised)' : (input.trim() && selectedWallet ? 'var(--accent)' : 'var(--bg-raised)'),
+                color: loading || !input.trim() || !selectedWallet ? 'var(--text-dim)' : '#000',
                 border: 'none',
                 borderRadius: 6,
-                cursor: loading ? 'wait' : (input.trim() ? 'pointer' : 'default'),
+                cursor: loading ? 'wait' : (input.trim() && selectedWallet ? 'pointer' : 'default'),
                 letterSpacing: 0.3,
               }}
             >

@@ -24,6 +24,10 @@ export function ServicesTab() {
     return map
   }, [bots])
 
+  const availableWallets = useMemo(() =>
+    bots.map(b => ({ accountId: b.accountId, name: b.name })),
+  [bots])
+
   const filtered = category === 'ALL' ? services : services.filter(s => s.category === category)
 
   return (
@@ -139,6 +143,7 @@ export function ServicesTab() {
           <BuyServiceDrawer
             service={buyTarget}
             agentName={agentNames[buyTarget.providerAccountId]}
+            availableWallets={availableWallets}
             onClose={() => setBuyTarget(null)}
           />
         )}

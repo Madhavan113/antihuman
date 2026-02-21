@@ -66,7 +66,7 @@ const reviewServiceSchema = z.object({
 
 const buyServiceSchema = z.object({
   input: z.string().min(1),
-  payerAccountId: z.string().optional()
+  payerAccountId: z.string().min(1)
 });
 
 export function createServicesRouter(eventBus: ApiEventBus, clawdbotNetwork?: ClawdbotNetwork): Router {
@@ -255,14 +255,20 @@ export function createServicesRouter(eventBus: ApiEventBus, clawdbotNetwork?: Cl
         return;
       }
 
-      const requesterAccountId = request.body.payerAccountId || process.env.HEDERA_ACCOUNT_ID || "demo";
+      const requesterAccountId = request.body.payerAccountId;
+
+      const requesterClient = clawdbotNetwork.getHederaClientForAccount(requesterAccountId);
+      if (!requesterClient) {
+        response.status(400).json({ error: `No wallet found for account ${requesterAccountId}. The buyer must be a registered agent or platform user with a custodial wallet.` });
+        return;
+      }
 
       try {
         const serviceRequest = await requestService({
           serviceId: service.id,
           requesterAccountId,
           input: request.body.input
-        });
+        }, { client: requesterClient });
         eventBus.publish("service.requested", serviceRequest);
 
         await acceptRequest({

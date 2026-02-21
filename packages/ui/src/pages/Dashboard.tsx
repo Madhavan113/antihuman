@@ -10,11 +10,13 @@ import { MarketCard } from '../components/MarketCard'
 import { SkeletonCard } from '../components/Skeleton'
 import { ThreadMessage } from '../components/ThreadMessage'
 import { Stat, Tabs, Card, EmptyState } from '../components/ui'
-import { useClawdbotGoals, useClawdbotStatus, useClawdbotThread } from '../hooks/useClawdbots'
+import { useClawdbotGoals, useClawdbotStatus, useClawdbotThread, useClawdbots } from '../hooks/useClawdbots'
 import { useMarketBetsByIds, useMarkets } from '../hooks/useMarkets'
 import { useDerivativesOverview } from '../hooks/useDerivatives'
 import { useServices } from '../hooks/useServices'
+import { BuyServiceDrawer } from '../components/services/BuyServiceDrawer'
 import { MarketDetail } from './MarketDetail'
+import type { Service } from '../api/services'
 
 export function Dashboard() {
   const navigate = useNavigate()
@@ -27,6 +29,16 @@ export function Dashboard() {
   const { data: goals = [] } = useClawdbotGoals()
   const { data: derivOverview } = useDerivativesOverview()
   const { data: services = [] } = useServices()
+  const { data: bots = [] } = useClawdbots()
+  const [buyTarget, setBuyTarget] = useState<Service | null>(null)
+
+  const activeServices = useMemo(() => services.filter(s => s.status === 'ACTIVE'), [services])
+  const agentNamesByAccount = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const b of bots) map[b.accountId] = b.name
+    return map
+  }, [bots])
+  const walletList = useMemo(() => bots.map(b => ({ accountId: b.accountId, name: b.name })), [bots])
 
   const queryClient = useQueryClient()
   const clawdbotStart = useMutation({ mutationFn: clawdbotsApi.start, onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['clawdbots'] }) })
@@ -147,19 +159,32 @@ export function Dashboard() {
                   </span>
                 </Card>
               )}
-              {services.length > 0 && (
-                <Card
-                  hoverable
-                  onClick={() => navigate('/app/markets/services')}
-                >
-                  <span className="label" style={{ display: 'block', marginBottom: 8 }}>Services</span>
-                  <div className="flex items-baseline gap-2">
-                    <span style={{ fontSize: 18, fontWeight: 500 }}>{services.length}</span>
-                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>registered</span>
+              {activeServices.length > 0 && (
+                <Card style={{ padding: 0, overflow: 'hidden' }}>
+                  <div className="flex items-center justify-between px-4 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, color: 'var(--accent)' }}>MOLTBOOK</span>
+                    <button
+                      onClick={() => navigate('/app/markets/services')}
+                      className="label"
+                      style={{ fontSize: 10, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      Browse All
+                    </button>
                   </div>
-                  <span style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 4, display: 'block' }}>
-                    {services.filter(s => s.status === 'ACTIVE').length} active
-                  </span>
+                  {activeServices.slice(0, 3).map(svc => (
+                    <div
+                      key={svc.id}
+                      className="flex items-center gap-2 px-4 py-2 transition-colors duration-150"
+                      style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                      onClick={() => setBuyTarget(svc)}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-raised)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                    >
+                      <span style={{ fontSize: 9, color: 'var(--accent)', fontWeight: 600, minWidth: 48 }}>{svc.category}</span>
+                      <span className="flex-1 truncate" style={{ fontSize: 12, color: 'var(--text-primary)' }}>{svc.name}</span>
+                      <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>{svc.priceHbar} ℏ</span>
+                    </div>
+                  ))}
                 </Card>
               )}
             </div>
@@ -192,6 +217,17 @@ export function Dashboard() {
 
       <Drawer open={Boolean(selectedMarketId)} onClose={() => setSelectedMarketId(null)}>
         {selectedMarketId && <MarketDetail marketId={selectedMarketId} />}
+      </Drawer>
+
+      <Drawer open={Boolean(buyTarget)} onClose={() => setBuyTarget(null)}>
+        {buyTarget && (
+          <BuyServiceDrawer
+            service={buyTarget}
+            agentName={agentNamesByAccount[buyTarget.providerAccountId]}
+            availableWallets={walletList}
+            onClose={() => setBuyTarget(null)}
+          />
+        )}
       </Drawer>
     </div>
   )
