@@ -61,7 +61,8 @@ import {
   ucpIdempotencyMiddleware
 } from "./ucp/index.js";
 import { registerMoltbookAgentsFromEnv } from "./moltbook/index.js";
-import { resetServiceStoreForTests as resetServiceStore } from "@simulacrum/services";
+import { stateDirectory } from "@simulacrum/core";
+import { existsSync, rmSync } from "node:fs";
 
 class InMemoryAgentRegistry implements AgentRegistry {
   readonly #agents = new Map<string, BaseAgent>();
@@ -269,9 +270,12 @@ export function createApiServer(options: CreateApiServerOptions = {}): ApiServer
     clawdbotNetwork.setFulfillmentWorker(fulfillmentWorker);
   }
 
-  if ((process.env.WIPE_SERVICES ?? "").toLowerCase() === "true") {
-    console.log("[server] WIPE_SERVICES=true — clearing services state");
-    resetServiceStore();
+  if ((process.env.WIPE_STATE ?? process.env.WIPE_SERVICES ?? "").toLowerCase() === "true") {
+    const dir = stateDirectory();
+    if (existsSync(dir)) {
+      console.log(`[server] WIPE_STATE=true — removing ${dir}`);
+      rmSync(dir, { recursive: true, force: true });
+    }
   }
 
   // Register Moltbook API keys for service agents (on-chain transaction recording)
