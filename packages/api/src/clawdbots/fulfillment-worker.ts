@@ -3,6 +3,7 @@ import { getServiceStore, persistServiceStore } from "@simulacrum/services";
 
 import type { ApiEventBus } from "../events.js";
 import type { ClawdbotNetwork } from "./network.js";
+import { recordServiceFulfilled } from "../moltbook/index.js";
 
 export interface FulfillmentJob {
   requestId: string;
@@ -95,6 +96,19 @@ export class FulfillmentWorker {
         serviceName: job.serviceName,
         output: output.slice(0, 500),
       });
+
+      // Record FULFILLED on Moltbook (fire-and-forget)
+      const completedStore = getServiceStore();
+      const completedReq = completedStore.requests.get(job.requestId);
+      recordServiceFulfilled({
+        buyer: completedReq?.requesterAccountId ?? "",
+        provider: job.providerAccountId,
+        serviceId: job.serviceId,
+        serviceName: job.serviceName,
+        requestId: job.requestId,
+        amount: completedReq?.priceHbar ?? 0,
+        outputSummary: output.slice(0, 500),
+      }).catch(() => {});
     } catch (error) {
       job.status = "FAILED";
       job.error = error instanceof Error ? error.message : String(error);

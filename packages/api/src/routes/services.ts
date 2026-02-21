@@ -17,6 +17,7 @@ import type { ApiEventBus } from "../events.js";
 import type { ClawdbotNetwork } from "../clawdbots/network.js";
 import type { FulfillmentWorker } from "../clawdbots/fulfillment-worker.js";
 import { validateBody } from "../middleware/validation.js";
+import { recordServiceInitiated, recordServiceFulfilled } from "../moltbook/index.js";
 
 const registerServiceSchema = z.object({
   providerAccountId: z.string().min(1),
@@ -294,6 +295,16 @@ export function createServicesRouter(eventBus: ApiEventBus, clawdbotNetwork?: Cl
         });
         eventBus.publish("service.accepted", serviceRequest);
 
+        // Record the INITIATED transaction on-chain via Moltbook (fire-and-forget)
+        recordServiceInitiated({
+          buyer: requesterAccountId,
+          provider: service.providerAccountId,
+          serviceId: service.id,
+          serviceName: service.name,
+          requestId: serviceRequest.id,
+          amount: service.priceHbar,
+        }).catch(() => {});
+
         if (fulfillmentWorker) {
           fulfillmentWorker.spawn({
             requestId: serviceRequest.id,
@@ -328,6 +339,17 @@ export function createServicesRouter(eventBus: ApiEventBus, clawdbotNetwork?: Cl
           output
         });
         eventBus.publish("service.completed", completed);
+
+        // Record FULFILLED on Moltbook (fire-and-forget)
+        recordServiceFulfilled({
+          buyer: requesterAccountId,
+          provider: service.providerAccountId,
+          serviceId: service.id,
+          serviceName: service.name,
+          requestId: serviceRequest.id,
+          amount: service.priceHbar,
+          outputSummary: output.slice(0, 500),
+        }).catch(() => {});
 
         response.json({
           request: completed,

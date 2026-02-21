@@ -60,6 +60,7 @@ import {
   createUcpPaymentRouter,
   ucpIdempotencyMiddleware
 } from "./ucp/index.js";
+import { registerMoltbookAgentsFromEnv } from "./moltbook/index.js";
 
 class InMemoryAgentRegistry implements AgentRegistry {
   readonly #agents = new Map<string, BaseAgent>();
@@ -266,6 +267,9 @@ export function createApiServer(options: CreateApiServerOptions = {}): ApiServer
   if (clawdbotNetwork && fulfillmentWorker) {
     clawdbotNetwork.setFulfillmentWorker(fulfillmentWorker);
   }
+
+  // Register Moltbook API keys for service agents (on-chain transaction recording)
+  registerMoltbookAgentsFromEnv();
 
   const envResearchTickMs = Number(process.env.RESEARCH_TICK_MS);
   const envResearchAgentCount = Number(process.env.RESEARCH_AGENT_COUNT);
