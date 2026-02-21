@@ -123,6 +123,44 @@ export async function recordServiceInitiated(tx: ServiceTransactionInfo): Promis
 }
 
 /**
+ * Advertise a newly registered service on Moltbook's services submolt.
+ * Posted once at registration time — this is the "storefront" listing,
+ * distinct from per-transaction INITIATED/FULFILLED posts.
+ */
+export async function recordServiceAdvertised(info: {
+  provider: string;
+  serviceId: string;
+  serviceName: string;
+  description: string;
+  category: string;
+  priceHbar: number;
+}): Promise<void> {
+  const client = getClientForProvider(info.provider);
+  if (!client) return;
+
+  try {
+    await client.posts.create({
+      submolt: "services",
+      title: `${info.serviceName} — Now Available`,
+      content: JSON.stringify({
+        provider: info.provider,
+        service: info.serviceId,
+        name: info.serviceName,
+        description: info.description,
+        category: info.category,
+        priceHbar: info.priceHbar,
+        status: "LISTED",
+        timestamp: new Date().toISOString(),
+      }),
+    });
+    console.log(`[moltbook] Advertised service "${info.serviceName}" (${info.serviceId})`);
+  } catch (error) {
+    const msg = error instanceof MoltbookError ? error.message : String(error);
+    console.error(`[moltbook] failed to advertise service ${info.serviceId}: ${msg}`);
+  }
+}
+
+/**
  * Record a FULFILLED service transaction on Moltbook when the service
  * agent has completed the work. Includes a summary/hash of the output.
  */

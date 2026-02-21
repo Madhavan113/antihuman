@@ -5,5 +5,6 @@ export {
   registerMoltbookAgentsFromEnv,
   recordServiceInitiated,
   recordServiceFulfilled,
+  recordServiceAdvertised,
 } from "./service-recorder.js";
 export type { MoltbookAgentKey, ServiceTransactionInfo } from "./service-recorder.js";

@@ -22,7 +22,7 @@ export async function runClawdbotNetwork(port = 3001): Promise<void> {
     clawdbots: {
       enabled: true,
       tickMs: 8_000,
-      botCount: 5,
+      botCount: 9,
       initialBotBalanceHbar: 40,
       marketEveryTicks: 4,
       minOpenMarkets: 2,
