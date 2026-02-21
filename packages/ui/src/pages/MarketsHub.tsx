@@ -30,7 +30,7 @@ export function MarketsHub() {
           />
         </>
       )}
-      <div className="flex-1 overflow-y-auto">
+      <div key={activeTab} className="flex-1 overflow-y-auto tab-enter">
         <Outlet />
       </div>
     </div>

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { HashScanLink } from '../components/HashScanLink'
 import { OddsBar } from '../components/OddsBar'
-import { StatusBadge } from '../components/ui/Badge'
 import { useAgents } from '../hooks/useAgents'
 import { useMarket, useMarketBets, useOrderBook } from '../hooks/useMarkets'
 import { computeImpliedOdds } from '../utils/odds'
@@ -10,34 +9,29 @@ interface MarketDetailProps {
   marketId: string
 }
 
-function toResolutionCountdownLabel(closeTime: string, status: string, resolvedAt?: string, nowMs = Date.now()): string {
+function toCountdown(closeTime: string, status: string, resolvedAt?: string, nowMs = Date.now()): string {
   if (status === 'RESOLVED') {
-    return `Resolved ${resolvedAt ? new Date(resolvedAt).toLocaleString() : 'recently'}`
+    return `RESOLVED ${resolvedAt ? new Date(resolvedAt).toLocaleString() : 'RECENTLY'}`
   }
-  const resolveAtMs = Date.parse(closeTime)
-  if (!Number.isFinite(resolveAtMs)) return 'Resolution time unavailable'
-  const msUntil = resolveAtMs - nowMs
-  if (msUntil <= 0) return 'Resolution pending'
-  const totalS = Math.floor(msUntil / 1000)
-  const d = Math.floor(totalS / 86_400)
-  const h = Math.floor((totalS % 86_400) / 3_600)
-  const m = Math.floor((totalS % 3_600) / 60)
-  const s = totalS % 60
-  if (d > 0) return `Resolves in ${d}d ${h}h`
-  if (h > 0) return `Resolves in ${h}h ${m}m`
-  if (m > 0) return `Resolves in ${m}m ${s}s`
-  return `Resolves in ${s}s`
+  const ms = Date.parse(closeTime) - nowMs
+  if (!Number.isFinite(ms) || ms <= 0) return 'RESOLUTION PENDING'
+  const s = Math.floor(ms / 1000)
+  const d = Math.floor(s / 86_400)
+  const h = Math.floor((s % 86_400) / 3_600)
+  const m = Math.floor((s % 3_600) / 60)
+  if (d > 0) return `RESOLVES IN ${d}D ${h}H`
+  if (h > 0) return `RESOLVES IN ${h}H ${m}M`
+  return `RESOLVES IN ${m}M ${s % 60}S`
 }
 
-function CountdownLabel({ closeTime, status, resolvedAt }: { closeTime: string; status: string; resolvedAt?: string }) {
-  const [nowMs, setNowMs] = useState(() => Date.now())
+function Countdown({ closeTime, status, resolvedAt }: { closeTime: string; status: string; resolvedAt?: string }) {
+  const [now, setNow] = useState(Date.now)
   useEffect(() => {
     if (status === 'RESOLVED') return
-    const timer = window.setInterval(() => setNowMs(Date.now()), 1_000)
-    return () => window.clearInterval(timer)
+    const t = window.setInterval(() => setNow(Date.now()), 1_000)
+    return () => window.clearInterval(t)
   }, [status])
-  const label = toResolutionCountdownLabel(closeTime, status, resolvedAt, nowMs)
-  return <p className="label mt-2" style={{ fontSize: 10 }}>{label}</p>
+  return <p className="mkt-countdown">{toCountdown(closeTime, status, resolvedAt, now)}</p>
 }
 
 export function MarketDetail({ marketId }: MarketDetailProps) {
@@ -53,9 +47,9 @@ export function MarketDetail({ marketId }: MarketDetailProps) {
     resolvedOutcome: market.resolvedOutcome,
   }) : {}, [market, betSnapshot])
 
-  const accountNameById = useMemo(() => agents.reduce<Record<string, string>>((acc, agent) => {
-    acc[agent.accountId] = agent.name
-    return acc
+  const names = useMemo(() => agents.reduce<Record<string, string>>((a, ag) => {
+    a[ag.accountId] = ag.name
+    return a
   }, {}), [agents])
 
   const sortedVotes = useMemo(() => [...(market?.oracleVotes ?? [])].sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)), [market?.oracleVotes])
@@ -63,158 +57,169 @@ export function MarketDetail({ marketId }: MarketDetailProps) {
 
   if (isLoading || !market) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <span className="label">Loading...</span>
+      <div className="flex items-center justify-center" style={{ padding: 80 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: '#3A3A3A' }}>LOADING</span>
       </div>
     )
   }
 
-  const openOrderCount = orderBook?.orders.filter((o: { status: string }) => o.status === 'OPEN').length ?? 0
-  const totalStakedHbar = betSnapshot?.totalStakedHbar ?? 0
-  const hasStakeSignal = totalStakedHbar > 0
-  const pricingSignalLabel = hasStakeSignal
-    ? 'Stake-weighted from executed fills'
-    : 'Seed listing odds (no executed fills yet)'
+  const openOrders = orderBook?.orders.filter((o: { status: string }) => o.status === 'OPEN').length ?? 0
+  const totalHbar = betSnapshot?.totalStakedHbar ?? 0
+  const signalLabel = totalHbar > 0 ? 'Stake-weighted from executed fills' : 'Seed listing odds — no fills yet'
   const challenges = market.challenges ?? []
   const oracleVotes = market.oracleVotes ?? []
-  const hasDisputeLog = market.status === 'DISPUTED' || Boolean(market.selfAttestation) || challenges.length > 0 || oracleVotes.length > 0
+  const hasDispute = market.status === 'DISPUTED' || Boolean(market.selfAttestation) || challenges.length > 0 || oracleVotes.length > 0
 
   const stakeByOutcome = Object.fromEntries(
-    market.outcomes.map((outcome: string) => [outcome, betSnapshot?.stakeByOutcome?.[outcome] ?? 0]),
+    market.outcomes.map((o: string) => [o, betSnapshot?.stakeByOutcome?.[o] ?? 0]),
   )
 
   return (
-    <div className="flex flex-col h-full">
+    <div>
       {/* Header */}
-      <div className="px-6 py-5 shrink-0" style={{ background: 'var(--bg-raised)', borderBottom: '1px solid var(--border)' }}>
-        <div className="flex items-center gap-2 mb-2">
-          <StatusBadge status={market.status} />
-        </div>
-        <h2 style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.3 }}>{market.question}</h2>
-        {market.description && (
-          <p className="mt-1.5" style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>{market.description}</p>
-        )}
-        <CountdownLabel closeTime={market.closeTime} status={market.status} resolvedAt={market.resolvedAt} />
+      <div className="mkt-header">
+        <span className="mkt-status">{market.status}</span>
+        <h2 className="mkt-question">{market.question}</h2>
+        {market.description && <p className="mkt-desc">{market.description}</p>}
+        <Countdown closeTime={market.closeTime} status={market.status} resolvedAt={market.resolvedAt} />
       </div>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto">
-        {/* Odds */}
-        <section className="px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <p className="label mb-3">Odds</p>
-          <div className="flex items-center justify-between mb-2">
-            {market.outcomes.map((o: string) => (
-              <div key={o} className="flex flex-col items-center gap-1">
-                <span style={{ fontSize: 28, fontWeight: 300, color: 'var(--text-primary)' }}>
-                  {odds[o] ?? 0}<span style={{ fontSize: 14, color: 'var(--text-muted)' }}>%</span>
-                </span>
-                <span className="label" style={{ fontSize: 10 }}>{o}</span>
-              </div>
-            ))}
-          </div>
-          <OddsBar outcomes={market.outcomes} counts={odds} height={8} />
-          <p className="label mt-2" style={{ fontSize: 10 }}>{pricingSignalLabel}</p>
-        </section>
+      <div className="mkt-rule" />
 
-        {/* Staked volume */}
-        <section className="px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <p className="label mb-3">Staked Volume</p>
-          <div className="flex items-center justify-between mb-2">
-            <span className="label" style={{ fontSize: 10 }}>{betSnapshot?.betCount ?? 0} bets</span>
-            <span className="font-mono" style={{ fontSize: 12 }}>{totalStakedHbar.toFixed(2)} HBAR</span>
-          </div>
-          {market.outcomes.map((outcome: string) => (
-            <div key={outcome} className="flex items-center justify-between py-1.5" style={{ borderBottom: '1px solid var(--border)' }}>
-              <span className="font-mono" style={{ fontSize: 12 }}>{outcome}</span>
-              <span className="font-mono" style={{ fontSize: 12 }}>{(stakeByOutcome[outcome] ?? 0).toFixed(2)} HBAR</span>
+      {/* Odds */}
+      <div className="mkt-section">
+        <div className="mkt-odds">
+          {market.outcomes.map((o: string) => (
+            <div key={o} className="mkt-odds-col">
+              <span className="mkt-odds-val">
+                {odds[o] ?? 0}<span className="mkt-odds-pct">%</span>
+              </span>
+              <span className="mkt-odds-label">{o}</span>
             </div>
           ))}
-        </section>
+        </div>
+        <OddsBar outcomes={market.outcomes} counts={odds} height={3} />
+        <p className="mkt-signal">{signalLabel}</p>
+      </div>
 
-        {/* Orderbook */}
-        {orderBook && (
-          <section className="px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <div className="flex items-center justify-between mb-3">
-              <p className="label">Order Book</p>
-              <span className="label" style={{ fontSize: 10 }}>{openOrderCount} open</span>
+      <div className="mkt-rule" />
+
+      {/* Orderbook */}
+      {orderBook && (
+        <>
+          <div className="mkt-section">
+            <div className="mkt-section-head">
+              <span>ORDER BOOK</span>
+              <span className="mkt-section-meta">{openOrders} open</span>
             </div>
-            <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 1fr' }}>
-              <div>
-                <p className="label mb-2" style={{ fontSize: 10, color: 'var(--success)' }}>BIDS</p>
+            <div className="mkt-book">
+              <div className="mkt-book-col" style={{ paddingRight: 16 }}>
+                <div className="mkt-book-label" style={{ color: 'var(--success)' }}>BIDS</div>
+                {orderBook.bids.length === 0 && <span className="mkt-book-empty">—</span>}
                 {orderBook.bids.slice(0, 8).map((o: { id: string; quantity: number; price: number }) => (
-                  <div key={o.id} className="flex justify-between py-1" style={{ borderBottom: '1px solid var(--border)' }}>
-                    <span className="font-mono" style={{ fontSize: 12 }}>{o.quantity}</span>
-                    <span className="font-mono" style={{ fontSize: 12, color: 'var(--success)' }}>{o.price}</span>
+                  <div key={o.id} className="mkt-book-row">
+                    <span className="mkt-book-qty">{o.quantity}</span>
+                    <span className="mkt-book-price" style={{ color: 'var(--success)' }}>{o.price.toFixed(2)}</span>
                   </div>
                 ))}
               </div>
-              <div>
-                <p className="label mb-2" style={{ fontSize: 10, color: 'var(--danger)' }}>ASKS</p>
+              <div className="mkt-book-mid" />
+              <div className="mkt-book-col" style={{ paddingLeft: 16 }}>
+                <div className="mkt-book-label" style={{ color: 'var(--danger)' }}>ASKS</div>
+                {orderBook.asks.length === 0 && <span className="mkt-book-empty">—</span>}
                 {orderBook.asks.slice(0, 8).map((o: { id: string; quantity: number; price: number }) => (
-                  <div key={o.id} className="flex justify-between py-1" style={{ borderBottom: '1px solid var(--border)' }}>
-                    <span className="font-mono" style={{ fontSize: 12 }}>{o.quantity}</span>
-                    <span className="font-mono" style={{ fontSize: 12, color: 'var(--danger)' }}>{o.price}</span>
+                  <div key={o.id} className="mkt-book-row">
+                    <span className="mkt-book-qty">{o.quantity}</span>
+                    <span className="mkt-book-price" style={{ color: 'var(--danger)' }}>{o.price.toFixed(2)}</span>
                   </div>
                 ))}
               </div>
             </div>
-          </section>
-        )}
+          </div>
+          <div className="mkt-rule" />
+        </>
+      )}
 
-        {/* Dispute log */}
-        {hasDisputeLog && (
-          <section className="px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <p className="label mb-3">Dispute Log</p>
+      {/* Volume */}
+      <div className="mkt-section">
+        <div className="mkt-section-head"><span>VOLUME</span></div>
+        <div className="mkt-vol-summary">
+          <span>{betSnapshot?.betCount ?? 0} bets</span>
+          <span>{totalHbar.toFixed(2)} HBAR</span>
+        </div>
+        {market.outcomes.map((o: string) => (
+          <div key={o} className="mkt-vol-row">
+            <span className="mkt-vol-outcome">{o}</span>
+            <span className="mkt-vol-val">{(stakeByOutcome[o] ?? 0).toFixed(2)} HBAR</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Dispute log */}
+      {hasDispute && (
+        <>
+          <div className="mkt-rule" />
+          <div className="mkt-section">
+            <div className="mkt-section-head"><span>DISPUTE LOG</span></div>
+
             {market.selfAttestation && (
-              <div className="mb-3 p-3" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', background: 'var(--bg-raised)' }}>
-                <p className="label mb-1" style={{ fontSize: 10 }}>SELF-ATTESTATION</p>
-                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  {accountNameById[market.selfAttestation.attestedByAccountId] ?? market.selfAttestation.attestedByAccountId} proposed{' '}
-                  <span style={{ color: 'var(--text-primary)' }}>{market.selfAttestation.proposedOutcome}</span>
+              <div className="mkt-attestation">
+                <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.15em', color: '#3A3A3A', marginBottom: 6 }}>SELF-ATTESTATION</p>
+                <p style={{ fontSize: 12, color: '#777' }}>
+                  {names[market.selfAttestation.attestedByAccountId] ?? market.selfAttestation.attestedByAccountId}{' '}
+                  proposed <span style={{ color: '#FFF' }}>{market.selfAttestation.proposedOutcome}</span>
                 </p>
                 {market.selfAttestation.reason && (
-                  <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4 }}>{market.selfAttestation.reason}</p>
+                  <p style={{ fontSize: 12, color: '#3A3A3A', marginTop: 4 }}>{market.selfAttestation.reason}</p>
                 )}
               </div>
             )}
 
-            <p className="label mb-2" style={{ fontSize: 10 }}>CHALLENGES ({sortedChallenges.length})</p>
+            <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.15em', color: '#3A3A3A', marginBottom: 8 }}>
+              CHALLENGES ({sortedChallenges.length})
+            </p>
             {sortedChallenges.length === 0 ? (
-              <p style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 12 }}>No challenges submitted.</p>
+              <p style={{ fontSize: 12, color: '#3A3A3A', marginBottom: 14 }}>None.</p>
             ) : (
-              <div className="mb-3">
+              <div style={{ marginBottom: 14 }}>
                 {sortedChallenges.map(c => (
-                  <div key={c.id} className="py-2" style={{ borderBottom: '1px solid var(--border)' }}>
-                    <p style={{ fontSize: 12 }}>
-                      {accountNameById[c.challengerAccountId] ?? c.challengerAccountId} challenged with{' '}
-                      <span style={{ color: 'var(--text-primary)' }}>{c.proposedOutcome}</span>
+                  <div key={c.id} className="mkt-dispute-row">
+                    <p style={{ fontSize: 12, color: '#777' }}>
+                      {names[c.challengerAccountId] ?? c.challengerAccountId} challenged →{' '}
+                      <span style={{ color: '#FFF' }}>{c.proposedOutcome}</span>
                     </p>
-                    <p style={{ fontSize: 11, color: 'var(--text-dim)' }}>{c.reason}</p>
+                    <p style={{ fontSize: 11, color: '#3A3A3A' }}>{c.reason}</p>
                   </div>
                 ))}
               </div>
             )}
 
-            <p className="label mb-2" style={{ fontSize: 10 }}>ORACLE VOTES ({sortedVotes.length})</p>
+            <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.15em', color: '#3A3A3A', marginBottom: 8 }}>
+              ORACLE VOTES ({sortedVotes.length})
+            </p>
             {sortedVotes.length === 0 ? (
-              <p style={{ fontSize: 12, color: 'var(--text-dim)' }}>No oracle votes yet.</p>
+              <p style={{ fontSize: 12, color: '#3A3A3A' }}>None yet.</p>
             ) : (
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col">
                 {sortedVotes.map(vote => {
-                  const isResolved = Boolean(market.resolvedOutcome)
-                  const isCorrect = market.resolvedOutcome ? vote.outcome === market.resolvedOutcome : false
-                  const repEffect = isResolved ? (isCorrect ? '+6' : '-4') : 'pending'
+                  const resolved = Boolean(market.resolvedOutcome)
+                  const correct = market.resolvedOutcome ? vote.outcome === market.resolvedOutcome : false
+                  const rep = resolved ? (correct ? '+6' : '-4') : '...'
                   return (
-                    <div key={vote.id} className="grid gap-2 py-1" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', borderBottom: '1px solid var(--border)' }}>
-                      <span className="font-mono truncate" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {accountNameById[vote.voterAccountId] ?? vote.voterAccountId}
+                    <div
+                      key={vote.id}
+                      className="grid gap-2 py-1.5"
+                      style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', borderBottom: '1px solid rgba(255,255,255,0.03)' }}
+                    >
+                      <span className="font-mono truncate" style={{ fontSize: 11, color: '#777' }}>
+                        {names[vote.voterAccountId] ?? vote.voterAccountId}
                       </span>
-                      <span className="font-mono" style={{ fontSize: 11 }}>{vote.outcome}</span>
-                      <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{Math.round(vote.confidence * 100)}%</span>
-                      <span className="font-mono" style={{ fontSize: 11, color: isCorrect ? 'var(--success)' : isResolved ? 'var(--danger)' : 'var(--text-dim)' }}>
-                        {repEffect}
+                      <span className="font-mono" style={{ fontSize: 11, color: '#FFF' }}>{vote.outcome}</span>
+                      <span className="font-mono" style={{ fontSize: 11, color: '#555' }}>{Math.round(vote.confidence * 100)}%</span>
+                      <span className="font-mono" style={{ fontSize: 11, color: correct ? 'var(--success)' : resolved ? 'var(--danger)' : '#3A3A3A' }}>
+                        {rep}
                       </span>
-                      <span className="font-mono" style={{ fontSize: 10, color: 'var(--text-dim)' }}>
+                      <span className="font-mono" style={{ fontSize: 10, color: '#3A3A3A' }}>
                         {new Date(vote.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </span>
                     </div>
@@ -222,41 +227,40 @@ export function MarketDetail({ marketId }: MarketDetailProps) {
                 })}
               </div>
             )}
-          </section>
-        )}
-
-        {/* On-chain metadata */}
-        <section className="px-6 py-4" style={{ background: 'var(--bg-raised)' }}>
-          <p className="label mb-3">On-Chain</p>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="label" style={{ fontSize: 10 }}>Topic ID</span>
-              <HashScanLink id={market.topicId} url={market.topicUrl} />
-            </div>
-            {market.outcomeTokenIds && (Object.entries(market.outcomeTokenIds) as [string, string][]).map(([outcome, tokenId]) => (
-              <div key={outcome} className="flex items-center justify-between">
-                <span className="label" style={{ fontSize: 10 }}>{outcome} Token</span>
-                <HashScanLink id={tokenId} url={market.outcomeTokenUrls?.[outcome] ?? '#'} />
-              </div>
-            ))}
-            {market.syntheticOutcomeIds && !market.outcomeTokenIds && (Object.entries(market.syntheticOutcomeIds) as [string, string][]).map(([outcome, syntheticId]) => (
-              <div key={outcome} className="flex items-center justify-between">
-                <span className="label" style={{ fontSize: 10 }}>{outcome} ID</span>
-                <span className="font-mono" style={{ fontSize: 11 }}>{syntheticId}</span>
-              </div>
-            ))}
-            <div className="flex items-center justify-between">
-              <span className="label" style={{ fontSize: 10 }}>Creator</span>
-              <HashScanLink id={market.creatorAccountId} url={`https://hashscan.io/testnet/account/${market.creatorAccountId}`} />
-            </div>
-            {market.resolvedOutcome && (
-              <div className="flex items-center justify-between">
-                <span className="label" style={{ fontSize: 10 }}>Resolved</span>
-                <span className="font-mono" style={{ fontSize: 12, color: 'var(--accent)' }}>{market.resolvedOutcome}</span>
-              </div>
-            )}
           </div>
-        </section>
+        </>
+      )}
+
+      {/* On-chain */}
+      <div className="mkt-rule" />
+      <div className="mkt-section">
+        <div className="mkt-section-head"><span>ON-CHAIN</span></div>
+        <div className="mkt-chain-row">
+          <span className="mkt-chain-label">Topic ID</span>
+          <HashScanLink id={market.topicId} url={market.topicUrl} />
+        </div>
+        {market.outcomeTokenIds && (Object.entries(market.outcomeTokenIds) as [string, string][]).map(([outcome, tokenId]) => (
+          <div key={outcome} className="mkt-chain-row">
+            <span className="mkt-chain-label">{outcome} Token</span>
+            <HashScanLink id={tokenId} url={market.outcomeTokenUrls?.[outcome] ?? '#'} />
+          </div>
+        ))}
+        {market.syntheticOutcomeIds && !market.outcomeTokenIds && (Object.entries(market.syntheticOutcomeIds) as [string, string][]).map(([outcome, syntheticId]) => (
+          <div key={outcome} className="mkt-chain-row">
+            <span className="mkt-chain-label">{outcome} ID</span>
+            <span className="font-mono" style={{ fontSize: 11, color: '#777' }}>{syntheticId}</span>
+          </div>
+        ))}
+        <div className="mkt-chain-row">
+          <span className="mkt-chain-label">Creator</span>
+          <HashScanLink id={market.creatorAccountId} url={`https://hashscan.io/testnet/account/${market.creatorAccountId}`} />
+        </div>
+        {market.resolvedOutcome && (
+          <div className="mkt-chain-row">
+            <span className="mkt-chain-label">Resolved</span>
+            <span className="font-mono" style={{ fontSize: 12, color: '#FFFFFF', fontWeight: 600 }}>{market.resolvedOutcome}</span>
+          </div>
+        )}
       </div>
     </div>
   )

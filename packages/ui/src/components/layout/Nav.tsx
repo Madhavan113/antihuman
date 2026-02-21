@@ -88,7 +88,7 @@ export function Nav() {
                   to={to}
                   end={end}
                   className={({ isActive }) =>
-                    `flex items-center px-2.5 py-1.5 text-sm transition-colors duration-150 ${
+                    `flex items-center px-2.5 py-1.5 text-sm transition-all duration-200 ${
                       isActive ? '' : 'hover:bg-raised'
                     }`
                   }

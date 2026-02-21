@@ -70,7 +70,7 @@ export function ActivityFeed({ onEventClick, className = '' }: ActivityFeedProps
   if (events.length === 0) {
     return (
       <div className={`flex flex-col items-center justify-center py-16 ${className}`}>
-        <p className="label">Waiting for events…</p>
+        <p className="dash-empty-title">WAITING FOR SIGNAL…</p>
       </div>
     )
   }
@@ -82,19 +82,16 @@ export function ActivityFeed({ onEventClick, className = '' }: ActivityFeedProps
         <button
           key={key}
           onClick={() => onEventClick?.(event)}
-          className="flex items-center gap-3 px-4 py-2.5 text-left hover:bg-raised border-b transition-colors"
-          style={{ borderColor: 'var(--border)', background: 'transparent', cursor: 'pointer' }}
+          className="feed-event"
         >
-          <span className="font-mono text-xs shrink-0" style={{ color: 'var(--text-dim)', minWidth: 70 }}>
+          <span className="feed-prefix">›</span>
+          <span className="feed-ts">
             {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </span>
-          <span
-            className="label shrink-0"
-            style={{ fontSize: 10, color: 'var(--accent)', borderColor: 'var(--accent-dim)', border: '1px solid', padding: '1px 6px', borderRadius: 3 }}
-          >
+          <span className="feed-type">
             {eventLabel(event.type)}
           </span>
-          <span className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+          <span className="feed-desc">
             {eventSummary(event)}
           </span>
         </button>

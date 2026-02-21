@@ -112,6 +112,46 @@ interface MarketSentiment {
 
 const DEFAULT_TICK_MS = 15_000;
 
+interface StrategyServicePrefs {
+  preferred: string[];
+  relevantChanceMultiplier: number;
+  exploratoryChanceMultiplier: number;
+  maxSpendPctRelevant: number;
+  maxSpendPctExploratory: number;
+}
+
+const STRATEGY_SERVICE_PREFS: Record<string, StrategyServicePrefs> = {
+  "reputation-based": {
+    preferred: ["RESEARCH", "ANALYSIS", "ORACLE"],
+    relevantChanceMultiplier: 2.8,
+    exploratoryChanceMultiplier: 0.5,
+    maxSpendPctRelevant: 0.4,
+    maxSpendPctExploratory: 0.1
+  },
+  contrarian: {
+    preferred: ["DATA", "ANALYSIS", "ORACLE"],
+    relevantChanceMultiplier: 2.6,
+    exploratoryChanceMultiplier: 0.5,
+    maxSpendPctRelevant: 0.35,
+    maxSpendPctExploratory: 0.1
+  },
+  random: {
+    preferred: [],
+    relevantChanceMultiplier: 1.2,
+    exploratoryChanceMultiplier: 0.8,
+    maxSpendPctRelevant: 0.15,
+    maxSpendPctExploratory: 0.15
+  }
+};
+
+const DEFAULT_SERVICE_PREFS: StrategyServicePrefs = {
+  preferred: [],
+  relevantChanceMultiplier: 1.2,
+  exploratoryChanceMultiplier: 0.8,
+  maxSpendPctRelevant: 0.15,
+  maxSpendPctExploratory: 0.15
+};
+
 function normalizeNetwork(value: string | undefined): HederaNetwork {
   const candidate = (value ?? "testnet").toLowerCase();
 
@@ -933,6 +973,23 @@ export class AutonomyEngine {
     });
   }
 
+  private scoreServiceForAgent(service: Service, runtime: RuntimeAgent): number {
+    const prefs = STRATEGY_SERVICE_PREFS[runtime.agent.strategy.name] ?? DEFAULT_SERVICE_PREFS;
+    let score = 0;
+
+    if (prefs.preferred.includes(service.category)) {
+      score += 50;
+    }
+
+    score += Math.min(20, service.rating * 4);
+    score += Math.min(15, service.completedCount * 3);
+
+    const affordability = 1 - service.priceHbar / (runtime.agent.bankrollHbar * 0.5);
+    score += Math.max(0, Math.min(15, affordability * 15));
+
+    return score;
+  }
+
   private async runServiceConsumption(): Promise<void> {
     if (this.#tickCount % this.#serviceEveryTicks !== 0) {
       return;
@@ -947,23 +1004,62 @@ export class AutonomyEngine {
       return;
     }
 
+    const marketStore = getMarketStore();
+    const openMarkets = Array.from(marketStore.markets.values()).filter(
+      (m) => m.status === "OPEN"
+    );
+
     for (const runtime of this.#runtimeAgents.values()) {
-      const affordable = activeServices.filter(
-        (svc) =>
-          svc.priceHbar <= runtime.agent.bankrollHbar * 0.3 &&
-          svc.providerAccountId !== runtime.wallet.accountId
+      const strategyName = runtime.agent.strategy.name;
+      const prefs = STRATEGY_SERVICE_PREFS[strategyName] ?? DEFAULT_SERVICE_PREFS;
+
+      const eligible = activeServices.filter(
+        (svc) => svc.providerAccountId !== runtime.wallet.accountId
       );
 
-      if (affordable.length === 0) {
+      if (eligible.length === 0) {
         continue;
       }
 
-      if (Math.random() > this.#serviceBuyChance) {
+      const relevant = eligible.filter(
+        (svc) =>
+          prefs.preferred.includes(svc.category) &&
+          svc.priceHbar <= runtime.agent.bankrollHbar * prefs.maxSpendPctRelevant
+      );
+
+      const exploratory = eligible.filter(
+        (svc) =>
+          !prefs.preferred.includes(svc.category) &&
+          svc.priceHbar <= runtime.agent.bankrollHbar * prefs.maxSpendPctExploratory
+      );
+
+      let service: Service | undefined;
+
+      const relevantChance = Math.min(
+        0.9,
+        this.#serviceBuyChance * prefs.relevantChanceMultiplier
+      );
+      const exploratoryChance = Math.min(
+        0.5,
+        this.#serviceBuyChance * prefs.exploratoryChanceMultiplier
+      );
+
+      if (relevant.length > 0 && Math.random() < relevantChance) {
+        const scored = relevant
+          .map((svc) => ({ svc, score: this.scoreServiceForAgent(svc, runtime) }))
+          .sort((a, b) => b.score - a.score);
+
+        const topN = scored.slice(0, Math.min(3, scored.length));
+        service = topN[Math.floor(Math.random() * topN.length)]?.svc;
+      } else if (exploratory.length > 0 && Math.random() < exploratoryChance) {
+        service = exploratory[Math.floor(Math.random() * exploratory.length)];
+      }
+
+      if (!service) {
         continue;
       }
 
-      const service = affordable[Math.floor(Math.random() * affordable.length)]!;
-      const input = this.generateServiceInput(service);
+      const input = this.generateServiceInput(service, runtime, openMarkets);
 
       try {
         const svcRequest = await requestService(
@@ -999,13 +1095,18 @@ export class AutonomyEngine {
               output
             });
 
+            runtime.agent.adjustReputation(1);
+
             this.#eventBus.publish("autonomy.service.completed", {
               agentId: runtime.agent.id,
               accountId: runtime.wallet.accountId,
               serviceId: service.id,
               serviceName: service.name,
+              category: service.category,
+              providerAccountId: service.providerAccountId,
               priceHbar: service.priceHbar,
-              requestId: svcRequest.id
+              requestId: svcRequest.id,
+              strategy: strategyName
             });
           } catch {
             this.#eventBus.publish("autonomy.service.fulfillment_error", {
@@ -1034,42 +1135,110 @@ export class AutonomyEngine {
     }
   }
 
-  private generateServiceInput(service: Service): string {
-    const inputs: Record<string, string[]> = {
-      ORACLE: [
-        "What is the current market sentiment for the top prediction markets?",
-        "Provide a data-driven forecast on the most active market topic.",
-        "What are the key on-chain signals agents should watch right now?"
-      ],
-      DATA: [
-        "Provide the latest activity metrics for prediction markets on Hedera.",
-        "Summarize recent agent trading volume and market participation.",
-        "What tokens or markets are seeing unusual volume today?"
-      ],
-      RESEARCH: [
-        "Analyze the risk factors in the current prediction market landscape.",
-        "Research which market categories have the highest return potential.",
-        "What emerging trends should agents be positioning for?"
-      ],
-      ANALYSIS: [
-        "Provide a technical analysis of recent prediction market odds movements.",
-        "Analyze the correlation between agent reputation scores and bet accuracy.",
-        "Which markets show the most mispriced odds right now?"
-      ],
-      COMPUTE: [
-        "Run a backtesting simulation on a contrarian betting strategy.",
-        "Calculate optimal bet sizing for a bankroll management strategy.",
-        "Optimize portfolio allocation across the active prediction markets."
-      ],
-      CUSTOM: [
-        "Provide your best actionable insight for an autonomous trading agent.",
-        "What should I prioritize in the current market environment?",
-        "Give me your top recommendation based on current conditions."
-      ]
+  private generateServiceInput(
+    service: Service,
+    runtime: RuntimeAgent,
+    openMarkets: Market[]
+  ): string {
+    const strategyName = runtime.agent.strategy.name;
+    const bankroll = runtime.agent.bankrollHbar.toFixed(1);
+    const marketCount = openMarkets.length;
+    const marketCtx =
+      marketCount > 0
+        ? `I'm tracking ${marketCount} open prediction market${marketCount > 1 ? "s" : ""}.`
+        : "No prediction markets are currently open.";
+
+    const strategyInputs: Record<string, Record<string, string[]>> = {
+      "reputation-based": {
+        ORACLE: [
+          `As a reputation-based agent with ${bankroll} HBAR, I need on-chain signals about market creator reliability. ${marketCtx} Which accounts have the strongest prediction track records?`,
+          `I evaluate markets by creator reputation. What data points should I weight when assessing whether a market creator's predictions are trustworthy?`,
+          `Provide reputation-weighted signals for current prediction market participants. I need to identify high-credibility creators to inform my bets.`
+        ],
+        RESEARCH: [
+          `I'm running a reputation-based strategy. ${marketCtx} Research which market creators have consistently accurate outcomes and why.`,
+          `Analyze the relationship between creator reputation and market outcome accuracy. I need this to calibrate my betting confidence levels.`,
+          `Which prediction market topics have creators with the strongest historical accuracy? I weight my bets by creator credibility.`
+        ],
+        ANALYSIS: [
+          `I bet based on creator reputation scores. ${marketCtx} Analyze which current markets have the best risk/reward given their creators' track records.`,
+          `Provide a reputation-adjusted analysis of active prediction markets. Which ones are most likely to resolve correctly based on creator history?`,
+          `Cross-reference creator reputation with market pricing. Where are reputation-backed markets underpriced?`
+        ],
+        DATA: [
+          `Provide creator reputation data for active market participants. I need account-level track records and accuracy rates.`,
+          `What is the latest data on prediction market creator performance? I need completion rates and accuracy metrics.`
+        ],
+        COMPUTE: [
+          `Backtest a reputation-threshold strategy: only bet on markets where creator reputation exceeds 65. What is the optimal threshold for my ${bankroll} HBAR bankroll?`,
+          `Calculate optimal bet sizing for a reputation-weighted strategy across ${marketCount} markets.`
+        ],
+        CUSTOM: [
+          `I'm a reputation-based prediction market agent. ${marketCtx} What's your best actionable insight for my strategy?`,
+          `Give me your top recommendation for a reputation-driven agent with ${bankroll} HBAR to deploy.`
+        ]
+      },
+      contrarian: {
+        ORACLE: [
+          `I'm a contrarian agent looking for overcrowded consensus. ${marketCtx} What markets show extreme one-sided sentiment I can fade?`,
+          `Provide sentiment data on prediction markets. I profit by betting against the crowd when consensus is too strong.`,
+          `Which market outcomes are most lopsidedly priced right now? I need to find where the crowd is likely wrong.`
+        ],
+        DATA: [
+          `I run a contrarian strategy. ${marketCtx} Show me bet distribution data — I need to find markets where 80%+ of volume is on one side.`,
+          `Provide volume and sentiment breakdowns for active prediction markets. Looking for extreme consensus to bet against.`,
+          `What markets have the most skewed betting patterns? I trade against the herd.`
+        ],
+        ANALYSIS: [
+          `Analyze which prediction markets have the most mispriced odds based on sentiment extremes. ${marketCtx} I bet against consensus.`,
+          `I'm contrarian with ${bankroll} HBAR. Which current markets show the biggest gap between crowd sentiment and probable outcomes?`,
+          `Identify overbet outcomes in active markets. Where is the crowd piling in and likely wrong?`
+        ],
+        RESEARCH: [
+          `Research historical cases where prediction market consensus was wrong. What patterns preceded those reversals?`,
+          `Which market categories tend to have the most overconfident consensus? I need to focus my contrarian bets.`
+        ],
+        COMPUTE: [
+          `Simulate a contrarian strategy that fades any outcome with over 70% consensus. Expected return on ${bankroll} HBAR?`,
+          `Calculate the optimal anti-consensus threshold for contrarian betting across ${marketCount} active markets.`
+        ],
+        CUSTOM: [
+          `I'm a contrarian agent with ${bankroll} HBAR. ${marketCtx} What's your best contrarian play right now?`,
+          `Where is the crowd most wrong in prediction markets? Give me your top contrarian recommendation.`
+        ]
+      },
+      random: {
+        ORACLE: [
+          `What is the current state of prediction markets? Provide key signals and trends.`,
+          `Give me a market overview — what should any prediction market participant know right now?`
+        ],
+        DATA: [
+          `Provide the latest activity metrics for prediction markets. ${marketCtx}`,
+          `Summarize recent trading volume and market participation across all active markets.`
+        ],
+        RESEARCH: [
+          `What are the emerging trends in prediction markets? Where are the best opportunities?`,
+          `Research which prediction market categories have the highest potential returns right now.`
+        ],
+        ANALYSIS: [
+          `Analyze the current prediction market landscape. ${marketCtx} What are the key opportunities?`,
+          `Which active markets have the most interesting odds? Provide a general market analysis.`
+        ],
+        COMPUTE: [
+          `Calculate optimal diversification across ${marketCount} active prediction markets with a ${bankroll} HBAR bankroll.`,
+          `Run a basic risk analysis for spreading bets across active markets.`
+        ],
+        CUSTOM: [
+          `I'm exploring prediction markets with ${bankroll} HBAR. What's your best actionable insight?`,
+          `Provide your top recommendation for a prediction market participant.`
+        ]
+      }
     };
 
-    const options = inputs[service.category] ?? inputs.CUSTOM!;
-    return options[Math.floor(Math.random() * options.length)]!;
+    const strategyMap = strategyInputs[strategyName] ?? strategyInputs["random"]!;
+    const categoryOptions =
+      strategyMap[service.category] ?? strategyMap["CUSTOM"] ?? [`Provide your best insight for ${service.name}.`];
+    return categoryOptions[Math.floor(Math.random() * categoryOptions.length)]!;
   }
 
   private async reclaimHbar(): Promise<void> {

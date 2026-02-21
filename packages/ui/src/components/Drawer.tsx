@@ -23,7 +23,7 @@ export function Drawer({ open, onClose, children, width = 480 }: DrawerProps) {
     <>
       <div
         className="fixed inset-0 z-40"
-        style={{ background: 'rgba(0,0,0,0.5)' }}
+        style={{ background: 'rgba(0,0,0,0.6)', animation: 'drawer-backdrop-in 200ms ease-out' }}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -36,7 +36,7 @@ export function Drawer({ open, onClose, children, width = 480 }: DrawerProps) {
           width,
           background: 'var(--bg-surface)',
           borderLeft: '1px solid var(--border)',
-          animation: 'slideInRight 200ms ease-out',
+          animation: 'drawer-panel-in 250ms ease-out',
         }}
       >
         <div className="flex flex-col h-full overflow-y-auto">
@@ -53,7 +53,10 @@ export function Drawer({ open, onClose, children, width = 480 }: DrawerProps) {
               cursor: 'pointer',
               color: 'var(--text-dim)',
               letterSpacing: '0.04em',
+              transition: 'color 150ms ease-out, border-color 150ms ease-out',
             }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--text-dim)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-dim)'; e.currentTarget.style.borderColor = 'var(--border)' }}
             aria-label="Close drawer"
           >
             ESC
