@@ -18,10 +18,10 @@ export function MarketCard({ market, onClick, horizontal = false, stakeByOutcome
     market.status === 'RESOLVED'
       ? 'resolved'
       : msUntilResolution <= 0
-        ? 'resolution pending'
+        ? 'pending'
         : msUntilResolution < 60 * 60 * 1000
-          ? `resolves in ${Math.max(1, Math.round(msUntilResolution / (60 * 1000)))}m`
-          : `resolves in ${Math.max(1, Math.round(msUntilResolution / (60 * 60 * 1000)))}h`
+          ? `${Math.max(1, Math.round(msUntilResolution / (60 * 1000)))}m`
+          : `${Math.max(1, Math.round(msUntilResolution / (60 * 60 * 1000)))}h`
   const odds = computeImpliedOdds({
     outcomes: market.outcomes,
     initialOddsByOutcome: market.initialOddsByOutcome,
@@ -30,30 +30,50 @@ export function MarketCard({ market, onClick, horizontal = false, stakeByOutcome
   })
 
   if (horizontal) {
+    const primaryOdds = odds[market.outcomes[0] ?? 'YES'] ?? 50
+
     return (
       <button
         onClick={onClick}
         aria-label={`Market: ${market.question}`}
-        className="w-full flex items-center gap-4 px-4 py-2.5 text-left transition-colors duration-150"
+        className="w-full text-left transition-colors duration-150"
         style={{
-          borderBottom: '1px solid var(--border)',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto auto auto',
+          alignItems: 'center',
+          gap: 12,
+          padding: '10px 24px',
           background: 'transparent',
-          cursor: 'pointer',
           border: 'none',
-          borderBlockEnd: '1px solid var(--border)',
+          borderBottom: '1px solid var(--border)',
+          cursor: 'pointer',
         }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-raised)' }}
         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
       >
-        <span className="flex-1 text-sm text-primary truncate" style={{ fontWeight: 400 }}>{market.question}</span>
-        <StatusBadge status={market.status} />
-        <div className="w-24 shrink-0">
-          <OddsBar outcomes={market.outcomes} counts={odds} height={6} />
-        </div>
-        <span className="font-mono text-xs shrink-0" style={{ color: 'var(--text-muted)', fontSize: 11 }}>
-          {market.creatorAccountId.slice(0, 10)}...
+        <span
+          className="text-sm text-primary"
+          style={{
+            fontWeight: 400,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            minWidth: 0,
+          }}
+        >
+          {market.question}
         </span>
-        <span className="label shrink-0" style={{ fontSize: 10 }}>
+
+        <span
+          className="font-mono"
+          style={{ fontSize: 13, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}
+        >
+          {primaryOdds}%
+        </span>
+
+        <StatusBadge status={market.status} />
+
+        <span className="label" style={{ fontSize: 10, whiteSpace: 'nowrap' }}>
           {resolutionLabel}
         </span>
       </button>

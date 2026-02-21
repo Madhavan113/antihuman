@@ -27,7 +27,7 @@ export function PredictionsTab() {
 
   return (
     <>
-      <div className="flex items-center gap-2 px-8 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+      <div className="flex items-center gap-2 px-6 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
         {STATUS_FILTERS.map(s => (
           <button
             key={s}
@@ -51,25 +51,12 @@ export function PredictionsTab() {
       </div>
 
       <div className="flex flex-col">
-        <div
-          className="grid px-4 py-2"
-          style={{
-            gridTemplateColumns: '1fr 100px 120px 140px 100px',
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
-          {['Question', 'Status', 'Odds', 'Creator', 'Resolves'].map(h => (
-            <span key={h} className="label" style={{ fontSize: 10 }}>{h}</span>
-          ))}
-        </div>
-
         {isLoading && Array.from({ length: 6 }, (_, i) => <SkeletonRow key={i} />)}
 
         {filtered.map(market => (
           <MarketCard
             key={market.id}
             market={market}
-            volumeNorm={0.5}
             horizontal
             stakeByOutcome={stakeByMarketId[market.id]}
             onClick={() => setSelectedId(market.id)}
