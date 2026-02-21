@@ -9,6 +9,10 @@ import {
   type MarketSnapshot
 } from "@simulacrum/agents";
 import { calculateReputationScore, getReputationStore } from "@simulacrum/reputation";
+import { getMarketStore } from "@simulacrum/markets";
+import { getDerivativesStore, getPositionsForAccount, getMarginAccount } from "@simulacrum/derivatives";
+import { getServiceStore } from "@simulacrum/services";
+import { getTaskStore } from "@simulacrum/tasks";
 
 import { getAgentPlatformStore } from "../agent-platform/store.js";
 import type { ApiEventBus } from "../events.js";
@@ -155,6 +159,102 @@ export function createAgentsRouter(registry: AgentRegistry, eventBus: ApiEventBu
     } catch (error) {
       response.status(400).json({ error: (error as Error).message });
     }
+  });
+
+  router.get("/:accountId/portfolio", (request, response) => {
+    const accountId = request.params.accountId;
+
+    const marketStore = getMarketStore();
+    const derivStore = getDerivativesStore();
+    const serviceStore = getServiceStore();
+    const taskStore = getTaskStore();
+    const repStore = getReputationStore();
+
+    const marketsCreated = Array.from(marketStore.markets.values())
+      .filter((m) => m.creatorAccountId === accountId)
+      .map((m) => ({ id: m.id, question: m.question, status: m.status, outcomes: m.outcomes, createdAt: m.createdAt }));
+
+    const bets: Array<{ marketId: string; marketQuestion: string; outcome: string; amountHbar: number; placedAt: string }> = [];
+    for (const [marketId, marketBets] of marketStore.bets.entries()) {
+      const market = marketStore.markets.get(marketId);
+      for (const bet of marketBets) {
+        if (bet.bettorAccountId === accountId) {
+          bets.push({
+            marketId,
+            marketQuestion: market?.question ?? marketId,
+            outcome: bet.outcome,
+            amountHbar: bet.amountHbar,
+            placedAt: bet.placedAt
+          });
+        }
+      }
+    }
+
+    const orders: Array<{ marketId: string; outcome: string; side: string; quantity: number; price: number; status: string }> = [];
+    for (const [marketId, marketOrders] of marketStore.orders.entries()) {
+      for (const order of marketOrders) {
+        if (order.accountId === accountId) {
+          orders.push({
+            marketId,
+            outcome: order.outcome,
+            side: order.side,
+            quantity: order.quantity,
+            price: order.price,
+            status: order.status
+          });
+        }
+      }
+    }
+
+    const positions = getPositionsForAccount(accountId);
+
+    const optionsWritten = Array.from(derivStore.options.values())
+      .filter((o) => o.writerAccountId === accountId);
+    const optionsHeld = Array.from(derivStore.options.values())
+      .filter((o) => o.holderAccountId === accountId);
+
+    let marginAccount = null;
+    try { marginAccount = getMarginAccount(accountId); } catch { /* no margin account yet */ }
+
+    const services = Array.from(serviceStore.services.values())
+      .filter((s) => s.providerAccountId === accountId)
+      .map((s) => ({ id: s.id, name: s.name, category: s.category, priceHbar: s.priceHbar, status: s.status, completedCount: s.completedCount }));
+
+    const tasksPosted = Array.from(taskStore.tasks.values())
+      .filter((t) => t.posterAccountId === accountId)
+      .map((t) => ({ id: t.id, title: t.title, category: t.category, bountyHbar: t.bountyHbar, status: t.status }));
+
+    const taskBids: Array<{ taskId: string; taskTitle: string; proposedPriceHbar: number; status: string }> = [];
+    for (const [taskId, bidList] of taskStore.bids.entries()) {
+      const task = taskStore.tasks.get(taskId);
+      for (const bid of bidList) {
+        if (bid.bidderAccountId === accountId) {
+          taskBids.push({
+            taskId,
+            taskTitle: task?.title ?? taskId,
+            proposedPriceHbar: bid.proposedPriceHbar,
+            status: bid.status
+          });
+        }
+      }
+    }
+
+    const reputation = calculateReputationScore(accountId, repStore.attestations, { baseline: 50 });
+
+    response.json({
+      accountId,
+      reputation: { score: reputation.score, attestationCount: reputation.attestationCount, confidence: reputation.confidence },
+      marginAccount,
+      marketsCreated,
+      bets,
+      orders,
+      positions,
+      optionsWritten,
+      optionsHeld,
+      services,
+      tasksPosted,
+      taskBids
+    });
   });
 
   router.post("/simulate", validateBody(simulationSchema), async (request, response) => {
