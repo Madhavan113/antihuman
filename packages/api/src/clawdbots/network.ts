@@ -2323,8 +2323,9 @@ export class ClawdbotNetwork {
     const store = getReputationStore();
 
     for (const runtime of this.#runtimeBots.values()) {
-      if (store.attestations.length > 0) {
-        const computed = calculateReputationScore(runtime.wallet.accountId, store.attestations);
+      const computed = calculateReputationScore(runtime.wallet.accountId, store.attestations);
+
+      if (computed.attestationCount > 0) {
         map[runtime.wallet.accountId] = computed.score;
 
         const drift = computed.score - runtime.agent.reputationScore;
