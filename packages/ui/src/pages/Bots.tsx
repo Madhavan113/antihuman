@@ -6,6 +6,7 @@ import { BotCard } from '../components/BotCard'
 import { PageHeader } from '../components/layout/PageHeader'
 import { SkeletonCard } from '../components/Skeleton'
 import { ThreadMessage } from '../components/ThreadMessage'
+import { Button, EmptyState } from '../components/ui'
 import { useClawdbotGoals, useClawdbotStatus, useClawdbots, useClawdbotThread } from '../hooks/useClawdbots'
 
 export function Bots() {
@@ -33,115 +34,81 @@ export function Bots() {
   if (statusError) {
     return (
       <div className="flex flex-col h-screen overflow-hidden">
-        <PageHeader title="Community ClawDBots" meta="offline" />
-        <div className="flex flex-col items-center justify-center flex-1">
-          <p className="label" style={{ color: 'var(--text-muted)' }}>
-            ClawDBot simulation network is not enabled on this server.
-          </p>
-          <p className="label text-xs" style={{ color: 'var(--text-dim)', marginTop: 8 }}>
-            Agents interact directly via the Agent Platform API.
-          </p>
-        </div>
+        <PageHeader title="Bots" meta="offline" />
+        <EmptyState
+          message="ClawDBot network is not enabled on this server"
+          sub="Agents interact directly via the Agent Platform API"
+        />
       </div>
     )
   }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <PageHeader title="Community ClawDBots" meta={`${bots.length} registered`} />
+      <PageHeader title="Bots" meta={`${bots.length} registered`} />
 
       {/* Status bar */}
       <div
-        className="flex items-center gap-4 px-8 py-3"
-        style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-raised)' }}
+        className="flex items-center gap-4 px-6 py-2.5"
+        style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}
       >
         <span
           style={{
-            width: 8, height: 8, borderRadius: '50%',
-            background: running ? 'var(--accent)' : 'var(--text-dim)',
+            width: 6, height: 6, borderRadius: '50%',
+            background: running ? 'var(--success)' : 'var(--text-dim)',
             flexShrink: 0,
           }}
         />
-        <span className="label text-xs">{running ? 'Running' : 'Stopped'}</span>
+        <span className="label" style={{ fontSize: 11 }}>{running ? 'Running' : 'Stopped'}</span>
         {status && (
           <>
-            <span className="label text-xs" style={{ color: 'var(--text-muted)' }}>
-              {status.botCount} total bots
-            </span>
-            <span className="label text-xs" style={{ color: 'var(--text-muted)' }}>
-              {communityBots.length} community bots
-            </span>
-            <span className="label text-xs" style={{ color: 'var(--text-muted)' }}>
-              {activeGoals.length} active goals
-            </span>
-            <span className="label text-xs" style={{ color: 'var(--text-muted)' }}>
-              {status.openMarkets} open markets
-            </span>
-            <span className="label text-xs" style={{ color: 'var(--text-muted)' }}>
-              {status.tickCount} ticks
-            </span>
+            <span className="label" style={{ fontSize: 11 }}>{status.botCount} total</span>
+            <span className="label" style={{ fontSize: 11 }}>{communityBots.length} community</span>
+            <span className="label" style={{ fontSize: 11 }}>{activeGoals.length} goals</span>
+            <span className="label" style={{ fontSize: 11 }}>{status.tickCount} ticks</span>
           </>
         )}
         <div className="flex-1" />
-        <button
+        <Button
+          size="sm"
+          variant={running ? 'secondary' : 'primary'}
           onClick={() => (running ? stopMut : startMut).mutate()}
           disabled={mutLoading}
-          className="label text-xs px-3 py-1"
-          style={{
-            background: running ? 'var(--bg-surface)' : 'var(--accent-dim)',
-            border: '1px solid var(--border)',
-            borderRadius: 6,
-            cursor: mutLoading ? 'wait' : 'pointer',
-            opacity: mutLoading ? 0.5 : 1,
-          }}
         >
           {running ? 'Stop' : 'Start'}
-        </button>
-        <button
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
           onClick={() => runNowMut.mutate()}
           disabled={mutLoading || !running}
-          className="label text-xs px-3 py-1"
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 6,
-            cursor: mutLoading || !running ? 'not-allowed' : 'pointer',
-            opacity: mutLoading || !running ? 0.5 : 1,
-          }}
         >
           Run Now
-        </button>
+        </Button>
       </div>
 
-      {/* Main body */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Bot cards grid (60%) */}
-        <section className="flex-1 overflow-y-auto px-8 py-6" style={{ borderRight: '1px solid var(--border)' }}>
+        <section className="flex-1 overflow-y-auto px-6 py-4" style={{ borderRight: '1px solid var(--border)' }}>
           {isLoading && (
-            <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 1fr' }}>
+            <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr' }}>
               {Array.from({ length: 4 }, (_, i) => <SkeletonCard key={i} />)}
             </div>
           )}
           {!isLoading && bots.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16">
-              <p className="label">No bots registered yet</p>
-            </div>
+            <EmptyState message="No bots registered yet" />
           )}
-          <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr' }}>
             {bots.map(bot => <BotCard key={bot.id} bot={bot} goal={goalByBotId[bot.id]} />)}
           </div>
         </section>
 
-        {/* Message thread (40%) */}
-        <aside style={{ width: 360, flexShrink: 0 }} className="flex flex-col">
-          <div className="px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+        <aside style={{ width: 340, flexShrink: 0 }} className="flex flex-col">
+          <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <p className="label">Bot Thread</p>
           </div>
           <div className="flex-1 overflow-y-auto">
             {thread.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16">
-                <p className="label">No messages yet</p>
-              </div>
+              <EmptyState message="No messages yet" />
             ) : (
               thread.map(msg => <ThreadMessage key={msg.id} msg={msg} />)
             )}

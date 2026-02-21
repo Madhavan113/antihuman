@@ -8,7 +8,7 @@ import { Bots } from './pages/Bots'
 import { Dashboard } from './pages/Dashboard'
 import { Landing } from './pages/Landing'
 import { MarketDetailPage } from './pages/MarketDetailPage'
-import { Markets } from './pages/Markets'
+import { MarketsHub } from './pages/MarketsHub'
 import { Onboard } from './pages/Onboard'
 import { Publications } from './pages/Publications'
 import { Research } from './pages/Research'
@@ -35,7 +35,7 @@ export default function App() {
               <Route path="onboard" element={<ErrorBoundary><Onboard /></ErrorBoundary>} />
               <Route path="app" element={<Shell />}>
                 <Route index element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
-                <Route path="markets" element={<ErrorBoundary><Markets /></ErrorBoundary>} />
+                <Route path="markets/*" element={<ErrorBoundary><MarketsHub /></ErrorBoundary>} />
                 <Route path="markets/:marketId" element={<ErrorBoundary><MarketDetailPage /></ErrorBoundary>} />
                 <Route path="agents" element={<ErrorBoundary><Agents /></ErrorBoundary>} />
                 <Route path="bots" element={<ErrorBoundary><Bots /></ErrorBoundary>} />

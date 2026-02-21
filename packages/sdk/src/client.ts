@@ -160,7 +160,7 @@ export interface Market {
   creatorAccountId: string;
   closeTime: string;
   createdAt: string;
-  status: "OPEN" | "CLOSED" | "RESOLVED" | "DISPUTED";
+  status: "OPEN" | "CLOSED" | "RESOLVED" | "DISPUTED" | "SETTLED";
   outcomes: string[];
   liquidityModel?: "CLOB" | "WEIGHTED_CURVE" | "HIGH_LIQUIDITY" | "LOW_LIQUIDITY";
   initialOddsByOutcome?: Record<string, number>;
@@ -262,6 +262,143 @@ export interface BetSummary {
     amountHbar: number;
     bettorAccountId: string;
   }>;
+}
+
+// ---------------------------------------------------------------------------
+// Services
+// ---------------------------------------------------------------------------
+
+export type ServiceCategory = "COMPUTE" | "DATA" | "RESEARCH" | "ANALYSIS" | "ORACLE" | "CUSTOM";
+export type ServiceStatus = "ACTIVE" | "SUSPENDED" | "RETIRED";
+export type ServiceRequestStatus = "PENDING" | "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "DISPUTED" | "CANCELLED";
+
+export interface ServiceEntry {
+  id: string;
+  providerAccountId: string;
+  name: string;
+  description: string;
+  category: ServiceCategory;
+  priceHbar: number;
+  status: ServiceStatus;
+  rating: number;
+  reviewCount: number;
+  completedCount: number;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ServiceRequestEntry {
+  id: string;
+  serviceId: string;
+  requesterAccountId: string;
+  providerAccountId: string;
+  priceHbar: number;
+  status: ServiceRequestStatus;
+  input: string;
+  output?: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface RegisterServiceInput {
+  providerAccountId: string;
+  name: string;
+  description: string;
+  category: ServiceCategory;
+  priceHbar: number;
+  tags?: string[];
+}
+
+export interface RequestServiceInput {
+  serviceId: string;
+  requesterAccountId: string;
+  input: string;
+}
+
+export interface ServiceReviewInput {
+  serviceId: string;
+  serviceRequestId: string;
+  reviewerAccountId: string;
+  rating: number;
+  comment: string;
+}
+
+// ---------------------------------------------------------------------------
+// Tasks
+// ---------------------------------------------------------------------------
+
+export type TaskCategory = "RESEARCH" | "PREDICTION" | "DATA_COLLECTION" | "ANALYSIS" | "DEVELOPMENT" | "CUSTOM";
+export type TaskStatus = "OPEN" | "ASSIGNED" | "IN_PROGRESS" | "REVIEW" | "COMPLETED" | "DISPUTED" | "EXPIRED" | "CANCELLED";
+
+export interface TaskEntry {
+  id: string;
+  posterAccountId: string;
+  title: string;
+  description: string;
+  category: TaskCategory;
+  bountyHbar: number;
+  deadline: string;
+  status: TaskStatus;
+  requiredReputation: number;
+  maxBids: number;
+  assigneeAccountId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTaskInput {
+  posterAccountId: string;
+  title: string;
+  description: string;
+  category: TaskCategory;
+  bountyHbar: number;
+  deadline: string;
+  requiredReputation?: number;
+  maxBids?: number;
+}
+
+export interface BidOnTaskInput {
+  taskId: string;
+  bidderAccountId: string;
+  proposedPriceHbar: number;
+  estimatedCompletion: string;
+  proposal: string;
+}
+
+export interface SubmitWorkInput {
+  taskId: string;
+  submitterAccountId: string;
+  deliverable: string;
+}
+
+// ---------------------------------------------------------------------------
+// Economy
+// ---------------------------------------------------------------------------
+
+export interface EconomyOverview {
+  overview: {
+    totalAgents: number;
+    markets: { total: number; open: number; resolved: number; disputed: number };
+    services: { total: number; active: number; totalRequests: number; completed: number; pending: number };
+    tasks: { total: number; open: number; assigned: number; completed: number; disputed: number };
+    insurance: { totalPolicies: number; totalPools: number };
+  };
+}
+
+export interface EconomyMetrics {
+  metrics: {
+    gdpHbar: number;
+    volumeByType: { markets: number; services: number; tasks: number };
+    transactionCounts: { total: number; marketBets: number; serviceRequests: number; taskBids: number };
+  };
+}
+
+export interface EconomyLeaderboardEntry {
+  accountId: string;
+  volumeHbar: number;
+  transactions: number;
+  reputationScore: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -504,6 +641,123 @@ export class SimulacrumClient {
   /** Request a faucet refill for testnet. */
   async requestFaucet(): Promise<FaucetResponse> {
     return this.#authed<FaucetResponse>("/agent/v1/wallet/faucet/request", { method: "POST" });
+  }
+
+  // -----------------------------------------------------------------------
+  // Services
+  // -----------------------------------------------------------------------
+
+  async listServices(): Promise<ServiceEntry[]> {
+    const payload = await this.#authed<{ services: ServiceEntry[] }>("/services", { method: "GET" });
+    return payload.services;
+  }
+
+  async getService(serviceId: string): Promise<{ service: ServiceEntry }> {
+    return this.#authed<{ service: ServiceEntry }>(`/services/${serviceId}`, { method: "GET" });
+  }
+
+  async registerService(input: RegisterServiceInput): Promise<{ service: ServiceEntry }> {
+    return this.#authed<{ service: ServiceEntry }>("/services", {
+      method: "POST",
+      body: JSON.stringify(input)
+    });
+  }
+
+  async requestService(input: RequestServiceInput): Promise<{ request: ServiceRequestEntry }> {
+    return this.#authed<{ request: ServiceRequestEntry }>(`/services/${input.serviceId}/request`, {
+      method: "POST",
+      body: JSON.stringify({
+        requesterAccountId: input.requesterAccountId,
+        input: input.input
+      })
+    });
+  }
+
+  async completeServiceRequest(serviceId: string, requestId: string, providerAccountId: string, output: string): Promise<{ request: ServiceRequestEntry }> {
+    return this.#authed<{ request: ServiceRequestEntry }>(`/services/${serviceId}/requests/${requestId}/complete`, {
+      method: "POST",
+      body: JSON.stringify({ providerAccountId, output })
+    });
+  }
+
+  async reviewService(input: ServiceReviewInput): Promise<unknown> {
+    return this.#authed(`/services/${input.serviceId}/reviews`, {
+      method: "POST",
+      body: JSON.stringify(input)
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Tasks
+  // -----------------------------------------------------------------------
+
+  async listTasks(filters?: { status?: string; category?: string }): Promise<TaskEntry[]> {
+    const params = new URLSearchParams();
+    if (filters?.status) params.set("status", filters.status);
+    if (filters?.category) params.set("category", filters.category);
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    const payload = await this.#authed<{ tasks: TaskEntry[] }>(`/tasks${qs}`, { method: "GET" });
+    return payload.tasks;
+  }
+
+  async getTask(taskId: string): Promise<{ task: TaskEntry }> {
+    return this.#authed<{ task: TaskEntry }>(`/tasks/${taskId}`, { method: "GET" });
+  }
+
+  async createTask(input: CreateTaskInput): Promise<{ task: TaskEntry }> {
+    return this.#authed<{ task: TaskEntry }>("/tasks", {
+      method: "POST",
+      body: JSON.stringify(input)
+    });
+  }
+
+  async bidOnTask(input: BidOnTaskInput): Promise<unknown> {
+    return this.#authed(`/tasks/${input.taskId}/bid`, {
+      method: "POST",
+      body: JSON.stringify({
+        bidderAccountId: input.bidderAccountId,
+        proposedPriceHbar: input.proposedPriceHbar,
+        estimatedCompletion: input.estimatedCompletion,
+        proposal: input.proposal
+      })
+    });
+  }
+
+  async submitWork(input: SubmitWorkInput): Promise<unknown> {
+    return this.#authed(`/tasks/${input.taskId}/submit`, {
+      method: "POST",
+      body: JSON.stringify({
+        submitterAccountId: input.submitterAccountId,
+        deliverable: input.deliverable
+      })
+    });
+  }
+
+  async approveWork(taskId: string, posterAccountId: string): Promise<{ task: TaskEntry }> {
+    return this.#authed<{ task: TaskEntry }>(`/tasks/${taskId}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ posterAccountId })
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Economy
+  // -----------------------------------------------------------------------
+
+  async getEconomyOverview(): Promise<EconomyOverview> {
+    return this.#authed<EconomyOverview>("/economy/overview", { method: "GET" });
+  }
+
+  async getEconomyMetrics(): Promise<EconomyMetrics> {
+    return this.#authed<EconomyMetrics>("/economy/metrics", { method: "GET" });
+  }
+
+  async getEconomyLeaderboard(): Promise<{ leaderboard: EconomyLeaderboardEntry[] }> {
+    return this.#authed<{ leaderboard: EconomyLeaderboardEntry[] }>("/economy/leaderboard", { method: "GET" });
+  }
+
+  async getAgentEconomyProfile(accountId: string): Promise<unknown> {
+    return this.#authed(`/economy/agents/${accountId}`, { method: "GET" });
   }
 
   // -----------------------------------------------------------------------

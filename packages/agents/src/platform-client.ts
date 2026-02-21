@@ -124,7 +124,7 @@ export interface Market {
   creatorAccountId: string;
   closeTime: string;
   createdAt: string;
-  status: "OPEN" | "CLOSED" | "RESOLVED" | "DISPUTED";
+  status: "OPEN" | "CLOSED" | "RESOLVED" | "DISPUTED" | "SETTLED";
   outcomes: string[];
   liquidityModel?: "CLOB" | "WEIGHTED_CURVE" | "HIGH_LIQUIDITY" | "LOW_LIQUIDITY";
   initialOddsByOutcome?: Record<string, number>;
@@ -231,6 +231,78 @@ export interface OrderBookSnapshot {
   marketId: string;
   bids: Array<{ id: string; outcome: string; price: number; quantity: number; filledQuantity: number; accountId: string }>;
   asks: Array<{ id: string; outcome: string; price: number; quantity: number; filledQuantity: number; accountId: string }>;
+}
+
+// ---------------------------------------------------------------------------
+// Services
+// ---------------------------------------------------------------------------
+
+export type ServiceCategory = "COMPUTE" | "DATA" | "RESEARCH" | "ANALYSIS" | "ORACLE" | "CUSTOM";
+
+export interface ServiceEntry {
+  id: string;
+  providerAccountId: string;
+  name: string;
+  description: string;
+  category: ServiceCategory;
+  priceHbar: number;
+  status: string;
+  rating: number;
+  completedCount: number;
+  tags: string[];
+  createdAt: string;
+}
+
+export interface RegisterServiceInput {
+  providerAccountId: string;
+  name: string;
+  description: string;
+  category: ServiceCategory;
+  priceHbar: number;
+  tags?: string[];
+}
+
+export interface RequestServiceInput {
+  serviceId: string;
+  requesterAccountId: string;
+  input: string;
+}
+
+// ---------------------------------------------------------------------------
+// Tasks
+// ---------------------------------------------------------------------------
+
+export type TaskCategory = "RESEARCH" | "PREDICTION" | "DATA_COLLECTION" | "ANALYSIS" | "DEVELOPMENT" | "CUSTOM";
+
+export interface TaskEntry {
+  id: string;
+  posterAccountId: string;
+  title: string;
+  description: string;
+  category: TaskCategory;
+  bountyHbar: number;
+  deadline: string;
+  status: string;
+  assigneeAccountId?: string;
+  createdAt: string;
+}
+
+export interface CreateTaskInput {
+  posterAccountId: string;
+  title: string;
+  description: string;
+  category: TaskCategory;
+  bountyHbar: number;
+  deadline: string;
+  requiredReputation?: number;
+}
+
+export interface BidOnTaskInput {
+  taskId: string;
+  bidderAccountId: string;
+  proposedPriceHbar: number;
+  estimatedCompletion: string;
+  proposal: string;
 }
 
 export class PlatformClient {
@@ -416,6 +488,72 @@ export class PlatformClient {
     return this.authorizedRequest<WalletBalance>("/agent/v1/wallet/balance", {
       method: "GET"
     });
+  }
+
+  // -----------------------------------------------------------------------
+  // Services
+  // -----------------------------------------------------------------------
+
+  async listServices(): Promise<ServiceEntry[]> {
+    const payload = await this.authorizedRequest<{ services: ServiceEntry[] }>("/services", { method: "GET" });
+    return payload.services;
+  }
+
+  async registerService(input: RegisterServiceInput): Promise<{ service: ServiceEntry }> {
+    return this.authorizedRequest<{ service: ServiceEntry }>("/services", {
+      method: "POST",
+      body: JSON.stringify(input)
+    });
+  }
+
+  async requestService(input: RequestServiceInput): Promise<unknown> {
+    return this.authorizedRequest(`/services/${input.serviceId}/request`, {
+      method: "POST",
+      body: JSON.stringify({
+        requesterAccountId: input.requesterAccountId,
+        input: input.input
+      })
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Tasks
+  // -----------------------------------------------------------------------
+
+  async listTasks(): Promise<TaskEntry[]> {
+    const payload = await this.authorizedRequest<{ tasks: TaskEntry[] }>("/tasks", { method: "GET" });
+    return payload.tasks;
+  }
+
+  async createTask(input: CreateTaskInput): Promise<{ task: TaskEntry }> {
+    return this.authorizedRequest<{ task: TaskEntry }>("/tasks", {
+      method: "POST",
+      body: JSON.stringify(input)
+    });
+  }
+
+  async bidOnTask(input: BidOnTaskInput): Promise<unknown> {
+    return this.authorizedRequest(`/tasks/${input.taskId}/bid`, {
+      method: "POST",
+      body: JSON.stringify({
+        bidderAccountId: input.bidderAccountId,
+        proposedPriceHbar: input.proposedPriceHbar,
+        estimatedCompletion: input.estimatedCompletion,
+        proposal: input.proposal
+      })
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Economy
+  // -----------------------------------------------------------------------
+
+  async getEconomyOverview(): Promise<unknown> {
+    return this.authorizedRequest("/economy/overview", { method: "GET" });
+  }
+
+  async getEconomyLeaderboard(): Promise<unknown> {
+    return this.authorizedRequest("/economy/leaderboard", { method: "GET" });
   }
 
   wsUrl(): string {

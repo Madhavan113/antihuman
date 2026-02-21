@@ -35,6 +35,8 @@ import {
   type Market
 } from "@simulacrum/markets";
 import { calculateReputationScore, getReputationStore, submitAttestation } from "@simulacrum/reputation";
+import { registerService, requestService, getServiceStore } from "@simulacrum/services";
+import { createTask, bidOnTask, getTaskStore } from "@simulacrum/tasks";
 
 import type { ApiEvent, ApiEventBus } from "../events.js";
 import type { AgentRegistry } from "../routes/agents.js";
@@ -2685,6 +2687,156 @@ export class ClawdbotNetwork {
           resolvedOutcome: parseNonEmptyString(action.resolvedOutcome, "YES"),
           reason: parseNonEmptyString(action.reason, "LLM-driven goal completion")
         });
+        return;
+      }
+      case "REGISTER_SERVICE": {
+        const name = parseNonEmptyString(action.serviceName, "");
+        const description = parseNonEmptyString(action.serviceDescription, "");
+
+        if (!name || !description) {
+          return;
+        }
+
+        const validCategories = new Set(["COMPUTE", "DATA", "RESEARCH", "ANALYSIS", "ORACLE", "CUSTOM"]);
+        const category = validCategories.has(action.serviceCategory ?? "")
+          ? (action.serviceCategory as "COMPUTE" | "DATA" | "RESEARCH" | "ANALYSIS" | "ORACLE" | "CUSTOM")
+          : "CUSTOM";
+        const priceHbar = typeof action.servicePriceHbar === "number" && action.servicePriceHbar > 0
+          ? action.servicePriceHbar
+          : 1;
+
+        try {
+          const result = await registerService({
+            providerAccountId: runtime.wallet.accountId,
+            name,
+            description,
+            category,
+            priceHbar
+          });
+          this.#eventBus.publish("service.registered", {
+            ...result.service,
+            botId: runtime.agent.id,
+            rationale: action.rationale
+          });
+          runtime.agent.adjustReputation(1);
+        } catch (error) {
+          this.#eventBus.publish("clawdbot.action.error", {
+            botId: runtime.agent.id,
+            action: "REGISTER_SERVICE",
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+        return;
+      }
+      case "REQUEST_SERVICE": {
+        const serviceId = parseNonEmptyString(action.serviceId, "");
+        const input = parseNonEmptyString(action.serviceInput, "");
+
+        if (!serviceId || !input) {
+          return;
+        }
+
+        try {
+          const serviceRequest = await requestService({
+            serviceId,
+            requesterAccountId: runtime.wallet.accountId,
+            input
+          });
+          this.#eventBus.publish("service.requested", {
+            ...serviceRequest,
+            botId: runtime.agent.id,
+            rationale: action.rationale
+          });
+        } catch (error) {
+          this.#eventBus.publish("clawdbot.action.error", {
+            botId: runtime.agent.id,
+            action: "REQUEST_SERVICE",
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+        return;
+      }
+      case "CREATE_TASK": {
+        const title = parseNonEmptyString(action.taskTitle, "");
+        const description = parseNonEmptyString(action.taskDescription, "");
+
+        if (!title || !description) {
+          return;
+        }
+
+        const validCategories = new Set(["RESEARCH", "PREDICTION", "DATA_COLLECTION", "ANALYSIS", "DEVELOPMENT", "CUSTOM"]);
+        const category = validCategories.has(action.taskCategory ?? "")
+          ? (action.taskCategory as "RESEARCH" | "PREDICTION" | "DATA_COLLECTION" | "ANALYSIS" | "DEVELOPMENT" | "CUSTOM")
+          : "CUSTOM";
+        const bountyHbar = typeof action.taskBountyHbar === "number" && action.taskBountyHbar > 0
+          ? Math.min(action.taskBountyHbar, runtime.agent.bankrollHbar * 0.25)
+          : Math.min(2, runtime.agent.bankrollHbar * 0.1);
+        const deadlineMinutes = typeof action.taskDeadlineMinutes === "number" && action.taskDeadlineMinutes > 0
+          ? action.taskDeadlineMinutes
+          : 60;
+        const deadline = new Date(now.getTime() + deadlineMinutes * 60_000).toISOString();
+
+        if (bountyHbar <= 0) {
+          return;
+        }
+
+        try {
+          const result = await createTask({
+            posterAccountId: runtime.wallet.accountId,
+            title,
+            description,
+            category,
+            bountyHbar,
+            deadline
+          });
+          this.#eventBus.publish("task.created", {
+            ...result.task,
+            botId: runtime.agent.id,
+            rationale: action.rationale
+          });
+          runtime.agent.adjustReputation(0.5);
+        } catch (error) {
+          this.#eventBus.publish("clawdbot.action.error", {
+            botId: runtime.agent.id,
+            action: "CREATE_TASK",
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+        return;
+      }
+      case "BID_TASK": {
+        const taskId = parseNonEmptyString(action.taskId, "");
+        const proposal = parseNonEmptyString(action.taskProposal, "");
+
+        if (!taskId || !proposal) {
+          return;
+        }
+
+        const proposedPrice = typeof action.amountHbar === "number" && action.amountHbar > 0
+          ? action.amountHbar
+          : 1;
+        const estimatedCompletion = new Date(now.getTime() + 30 * 60_000).toISOString();
+
+        try {
+          const bid = await bidOnTask({
+            taskId,
+            bidderAccountId: runtime.wallet.accountId,
+            proposedPriceHbar: proposedPrice,
+            estimatedCompletion,
+            proposal
+          });
+          this.#eventBus.publish("task.bid", {
+            ...bid,
+            botId: runtime.agent.id,
+            rationale: action.rationale
+          });
+        } catch (error) {
+          this.#eventBus.publish("clawdbot.action.error", {
+            botId: runtime.agent.id,
+            action: "BID_TASK",
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
         return;
       }
       case "WAIT":

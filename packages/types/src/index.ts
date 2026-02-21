@@ -331,7 +331,10 @@ export type ObservationCategory =
   | "reputation_change"
   | "coordination_signal"
   | "liquidity_event"
-  | "anomaly";
+  | "anomaly"
+  | "service_lifecycle"
+  | "task_lifecycle"
+  | "derivative_trade";
 
 export interface ResearchObservation {
   id: string;

@@ -4,21 +4,41 @@
 
 @layer base {
   :root {
+    /* ── Core palette (techno noir) ── */
     --bg-base:      #0D0D0D;
     --bg-surface:   #141414;
     --bg-raised:    #1A1A1A;
+    --bg-hover:     var(--bg-raised);
+    --bg-active:    #1E1E1E;
     --border:       #2A2A2A;
+    --border-accent: var(--accent-dim);
     --text-primary: #F0EDE8;
     --text-muted:   #6B6460;
     --text-dim:     #3D3A38;
+    --text-accent:  var(--accent);
     --accent:       #D4917A;
     --accent-dim:   #8C5A47;
-    --dither-hi:    #E8E4DF;
-    --dither-lo:    #1E1C1A;
+
+    /* ── Semantic colors ── */
+    --success:      #6B8F6B;
+    --danger:       #C45A5A;
+    --warning:      #C4A05A;
     --status-resolved-border: #3A4A3A;
     --status-resolved-text:   #6B8F6B;
     --status-disputed-border: #4A3A2A;
     --status-disputed-text:   #C4845A;
+
+    /* ── Radii ── */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+
+    /* ── Focus ── */
+    --focus-ring: 0 0 0 1px var(--accent-dim);
+
+    /* ── Legacy (landing page only) ── */
+    --dither-hi:    #E8E4DF;
+    --dither-lo:    #1E1C1A;
   }
 
   *, *::before, *::after { box-sizing: border-box; }
@@ -36,26 +56,6 @@
 }
 
 @layer components {
-  /* CRT scanline overlay — apply .scanline-zone to a position:relative element */
-  .scanline-zone {
-    position: relative;
-  }
-
-  .scanline-zone::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.18) 2px,
-      rgba(0, 0, 0, 0.18) 3px
-    );
-    pointer-events: none;
-  }
-
-  /* Label metadata style */
   .label {
     font-size: 11px;
     font-weight: 400;
@@ -64,7 +64,6 @@
     color: var(--text-muted);
   }
 
-  /* Editorial title */
   .editorial {
     font-size: clamp(28px, 4vw, 48px);
     font-weight: 300;
@@ -73,36 +72,13 @@
     color: var(--text-primary);
   }
 
-  /* Status badge */
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    border: 1px solid var(--border);
-    background: var(--bg-raised);
-    color: var(--text-muted);
+  .skeleton-pulse {
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
   }
-
-  .status-badge[data-status="OPEN"]     { border-color: var(--accent-dim); color: var(--accent); }
-  .status-badge[data-status="RESOLVED"] { border-color: var(--status-resolved-border); color: var(--status-resolved-text); }
-  .status-badge[data-status="DISPUTED"] { border-color: var(--status-disputed-border); color: var(--status-disputed-text); }
-  .status-badge[data-status="CLOSED"]   { border-color: var(--border); color: var(--text-dim); }
 }
 
 @layer utilities {
   .border-hair { border: 1px solid var(--border); }
-}
-
-@layer components {
-  .skeleton-pulse {
-    animation: skeleton-shimmer 1.5s ease-in-out infinite;
-  }
 }
 
 @keyframes skeleton-shimmer {
@@ -110,35 +86,35 @@
   50%      { opacity: 0.6; }
 }
 
-/* ── Animated background layers ── */
-.bg-layer-mosaic {
-  animation: bg-drift-slow 60s ease-in-out infinite alternate;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-.bg-layer-sculpture {
-  animation: bg-drift-med 45s ease-in-out infinite alternate-reverse;
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
 }
 
-.bg-layer-pixels {
-  animation: bg-drift-fast 35s ease-in-out infinite alternate;
+/* ── Landing page only ── */
+
+.scanline-zone { position: relative; }
+.scanline-zone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 3px);
+  pointer-events: none;
 }
 
-@keyframes bg-drift-slow {
-  0%   { background-position: center center; }
-  100% { background-position: 48% 52%; }
-}
+.bg-layer-mosaic   { animation: bg-drift-slow 60s ease-in-out infinite alternate; }
+.bg-layer-sculpture { animation: bg-drift-med 45s ease-in-out infinite alternate-reverse; }
+.bg-layer-pixels   { animation: bg-drift-fast 35s ease-in-out infinite alternate; }
 
-@keyframes bg-drift-med {
-  0%   { background-position: 65% center; }
-  100% { background-position: 60% 55%; }
-}
+@keyframes bg-drift-slow  { 0% { background-position: center center; } 100% { background-position: 48% 52%; } }
+@keyframes bg-drift-med   { 0% { background-position: 65% center; }   100% { background-position: 60% 55%; } }
+@keyframes bg-drift-fast  { 0% { background-position: -10% 20%; }     100% { background-position: -5% 25%; } }
 
-@keyframes bg-drift-fast {
-  0%   { background-position: -10% 20%; }
-  100% { background-position: -5% 25%; }
-}
-
-/* Film grain */
 .bg-grain {
   position: absolute;
   inset: 0;
@@ -150,7 +126,6 @@
   animation: grain-shift 0.5s steps(4) infinite;
   mix-blend-mode: overlay;
 }
-
 @keyframes grain-shift {
   0%   { transform: translate(0, 0); }
   25%  { transform: translate(-2px, 3px); }
@@ -158,25 +133,5 @@
   75%  { transform: translate(-1px, -2px); }
   100% { transform: translate(2px, 1px); }
 }
-
-/* Pulse glow for accent elements */
-@keyframes accent-pulse {
-  0%, 100% { opacity: 0.6; }
-  50%      { opacity: 1; }
-}
-
-/* Slow fade-in for background layers */
-@keyframes layer-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* Drawer animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
-}
+@keyframes accent-pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+@keyframes layer-fade-in { from { opacity: 0; } to { opacity: 1; } }

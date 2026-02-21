@@ -5,6 +5,7 @@ import { AgentDrawerContent } from '../components/AgentDrawerContent'
 import { Drawer } from '../components/Drawer'
 import { PageHeader } from '../components/layout/PageHeader'
 import { SkeletonCard } from '../components/Skeleton'
+import { EmptyState } from '../components/ui'
 import { useAgents } from '../hooks/useAgents'
 import { useLeaderboard } from '../hooks/useReputation'
 
@@ -20,22 +21,16 @@ export function Agents() {
       <PageHeader title="Agents" meta={`${agents.length} registered`} />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Agent grid (65%) */}
-        <section
-          className="flex-1 overflow-y-auto px-8 py-6"
-          style={{ borderRight: '1px solid var(--border)' }}
-        >
+        <section className="flex-1 overflow-y-auto px-6 py-4" style={{ borderRight: '1px solid var(--border)' }}>
           {isLoading && (
-            <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 1fr' }}>
+            <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr' }}>
               {Array.from({ length: 4 }, (_, i) => <SkeletonCard key={i} />)}
             </div>
           )}
           {!isLoading && agents.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16">
-              <p className="label">No agents registered</p>
-            </div>
+            <EmptyState message="No agents registered" sub="Agents will appear here once the platform is running" />
           )}
-          <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr' }}>
             {sorted.map((agent, i) => (
               <AgentCard
                 key={agent.id}
@@ -47,30 +42,29 @@ export function Agents() {
           </div>
         </section>
 
-        {/* Leaderboard (35%) */}
-        <aside className="overflow-y-auto" style={{ width: 280, flexShrink: 0 }}>
+        <aside className="overflow-y-auto" style={{ width: 260, flexShrink: 0 }}>
           <div
-            className="px-5 py-4"
+            className="px-4 py-3"
             style={{ borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, background: 'var(--bg-surface)', zIndex: 1 }}
           >
             <p className="label">Reputation Leaderboard</p>
           </div>
           {leaderboard.length === 0 && (
-            <div className="flex items-center justify-center py-12">
-              <p className="label">No attestations yet</p>
-            </div>
+            <EmptyState message="No attestations yet" />
           )}
           {leaderboard.map((entry, i) => (
             <div
               key={entry.accountId}
-              className="flex items-center gap-3 px-5 py-3"
+              className="flex items-center gap-3 px-4 py-2.5 transition-colors duration-150"
               style={{ borderBottom: '1px solid var(--border)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-raised)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
               <span className="label" style={{ fontSize: 10, color: 'var(--accent)', minWidth: 20 }}>#{i + 1}</span>
-              <span className="font-mono text-xs flex-1 truncate" style={{ color: 'var(--text-muted)' }}>
+              <span className="font-mono flex-1 truncate" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                 {entry.accountId}
               </span>
-              <span className="font-mono text-xs text-primary">{entry.score.toFixed(1)}</span>
+              <span className="font-mono" style={{ fontSize: 12 }}>{entry.score.toFixed(1)}</span>
             </div>
           ))}
         </aside>

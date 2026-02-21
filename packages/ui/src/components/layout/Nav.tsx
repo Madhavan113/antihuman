@@ -1,13 +1,36 @@
 import { NavLink } from 'react-router-dom'
 import { useWebSocket } from '../../hooks/useWebSocket'
 
-const links = [
-  { to: '/app',              label: 'Dashboard' },
-  { to: '/app/markets',      label: 'Markets'   },
-  { to: '/app/agents',       label: 'Agents'    },
-  { to: '/app/bots',         label: 'Community Bots' },
-  { to: '/app/publications', label: 'Research'       },
-  { to: '/app/onboard',      label: 'Onboard SDK'    },
+interface NavItem { to: string; label: string; end?: boolean }
+interface NavSection { label: string | null; links: NavItem[] }
+
+const sections: NavSection[] = [
+  {
+    label: null,
+    links: [
+      { to: '/app', label: 'Dashboard', end: true },
+    ],
+  },
+  {
+    label: 'Exchange',
+    links: [
+      { to: '/app/markets', label: 'Markets' },
+      { to: '/app/agents', label: 'Agents' },
+      { to: '/app/bots', label: 'Bots' },
+    ],
+  },
+  {
+    label: 'Research',
+    links: [
+      { to: '/app/publications', label: 'Publications' },
+    ],
+  },
+  {
+    label: 'Develop',
+    links: [
+      { to: '/app/onboard', label: 'Onboard SDK' },
+    ],
+  },
 ]
 
 export function Nav() {
@@ -16,51 +39,73 @@ export function Nav() {
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed left-0 top-0 h-screen flex flex-col border-r border-hair"
-      style={{ width: 220, background: 'rgba(20,20,20,0.85)', backdropFilter: 'blur(12px)', zIndex: 10 }}
+      className="fixed left-0 top-0 h-screen flex flex-col"
+      style={{
+        width: 200,
+        background: 'var(--bg-surface)',
+        borderRight: '1px solid var(--border)',
+        zIndex: 10,
+      }}
     >
-      {/* Wordmark */}
-      <div className="flex items-center justify-between px-5 py-6">
-        <span
-          className="label"
-          style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.12em', color: 'var(--text-primary)' }}
-        >
+      <div className="flex items-center justify-between px-4 py-5">
+        <span style={{
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: 'var(--text-primary)',
+        }}>
           SIMULACRUM
         </span>
-        {/* WS status dot */}
         <span
           role="status"
           aria-label={`WebSocket ${status}`}
           title={status}
           style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: status === 'connected' ? 'var(--accent)' : 'var(--text-dim)',
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            background: status === 'connected' ? 'var(--success)' : 'var(--text-dim)',
             flexShrink: 0,
           }}
         />
       </div>
 
-      {/* Divider */}
       <div style={{ height: 1, background: 'var(--border)' }} />
 
-      {/* Nav links */}
-      <div className="flex flex-col gap-1 px-3 mt-4 flex-1">
-        {links.map(({ to, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/app'}
-            className={({ isActive }) =>
-              `flex items-center px-3 py-2 rounded-[8px] text-sm transition-colors ${
-                isActive
-                  ? 'bg-raised text-primary border-l-2'
-                  : 'text-muted hover:text-primary hover:bg-raised'
-              }`
-            }
-            style={({ isActive }) => isActive ? { borderColor: 'var(--accent)' } : {}}
-          >
-            {label}
-          </NavLink>
+      <div className="flex flex-col flex-1 py-3 overflow-y-auto">
+        {sections.map((section, si) => (
+          <div key={si} className={si > 0 ? 'mt-4' : ''}>
+            {section.label && (
+              <div className="label px-4 mb-1.5" style={{ fontSize: 10 }}>
+                {section.label}
+              </div>
+            )}
+            <div className="flex flex-col gap-px px-2">
+              {section.links.map(({ to, label, end }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={end}
+                  className={({ isActive }) =>
+                    `flex items-center px-2.5 py-1.5 text-sm transition-colors duration-150 ${
+                      isActive ? '' : 'hover:bg-raised'
+                    }`
+                  }
+                  style={({ isActive }) => ({
+                    borderRadius: 'var(--radius-md)',
+                    color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
+                    background: isActive ? 'var(--bg-raised)' : 'transparent',
+                    borderLeft: isActive ? '2px solid var(--accent)' : '2px solid transparent',
+                    fontSize: 13,
+                    fontWeight: isActive ? 500 : 400,
+                  })}
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </nav>

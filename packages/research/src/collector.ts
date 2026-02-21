@@ -47,6 +47,15 @@ function categorizeEvent(type: string): ObservationCategory | null {
   if (type === "autonomy.agent.created" || type === "clawdbot.spawned" || type === "clawdbot.joined") {
     return "coordination_signal";
   }
+  if (type.startsWith("service.")) {
+    return "service_lifecycle";
+  }
+  if (type.startsWith("task.")) {
+    return "task_lifecycle";
+  }
+  if (type.startsWith("derivative.") || type.startsWith("perpetual.") || type.startsWith("option.")) {
+    return "derivative_trade";
+  }
   return null;
 }
 
@@ -58,6 +67,10 @@ function extractMetrics(type: string, payload: Record<string, unknown>): Record<
   if (typeof payload.price === "number") metrics.price = payload.price;
   if (typeof payload.confidence === "number") metrics.confidence = payload.confidence;
   if (typeof payload.scoreDelta === "number") metrics.scoreDelta = payload.scoreDelta;
+  if (typeof payload.priceHbar === "number") metrics.priceHbar = payload.priceHbar;
+  if (typeof payload.bountyHbar === "number") metrics.bountyHbar = payload.bountyHbar;
+  if (typeof payload.rating === "number") metrics.rating = payload.rating;
+  if (typeof payload.proposedPriceHbar === "number") metrics.proposedPriceHbar = payload.proposedPriceHbar;
 
   if (type.includes("bet") && typeof payload.amountHbar === "number") {
     metrics.betSize = payload.amountHbar;
@@ -76,6 +89,13 @@ function extractAgentIds(payload: Record<string, unknown>): string[] {
   if (typeof payload.voterAccountId === "string") ids.push(payload.voterAccountId);
   if (typeof payload.attesterAccountId === "string") ids.push(payload.attesterAccountId);
   if (typeof payload.subjectAccountId === "string") ids.push(payload.subjectAccountId);
+  if (typeof payload.providerAccountId === "string") ids.push(payload.providerAccountId);
+  if (typeof payload.requesterAccountId === "string") ids.push(payload.requesterAccountId);
+  if (typeof payload.posterAccountId === "string") ids.push(payload.posterAccountId);
+  if (typeof payload.bidderAccountId === "string") ids.push(payload.bidderAccountId);
+  if (typeof payload.assigneeAccountId === "string") ids.push(payload.assigneeAccountId);
+  if (typeof payload.reviewerAccountId === "string") ids.push(payload.reviewerAccountId);
+  if (typeof payload.submitterAccountId === "string") ids.push(payload.submitterAccountId);
   return [...new Set(ids)];
 }
 

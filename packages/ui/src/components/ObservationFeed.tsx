@@ -9,6 +9,9 @@ const CATEGORY_META: Record<ObservationCategory, { label: string; hue: number }>
   coordination_signal:{ label: 'Coordination',     hue: 170 },
   liquidity_event:    { label: 'Liquidity',        hue: 215 },
   anomaly:            { label: 'Anomaly',          hue: 25 },
+  service_lifecycle:  { label: 'Service',          hue: 185 },
+  task_lifecycle:     { label: 'Task',             hue: 310 },
+  derivative_trade:   { label: 'Derivative',       hue: 55 },
 }
 
 function dotColor(category: ObservationCategory): string {

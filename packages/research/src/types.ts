@@ -95,10 +95,10 @@ export const FOCUS_AREA_LABELS = RESEARCH_FOCUS_LABELS;
 export const FOCUS_AREA_SHORT_LABELS = RESEARCH_FOCUS_SHORT_LABELS;
 
 export const FOCUS_AREA_EVENT_FILTERS: Record<ResearchFocusArea, ObservationCategory[]> = {
-  agential_game_theory: ["price_movement", "agent_strategy", "liquidity_event", "anomaly"],
-  reputation_systems: ["reputation_change", "dispute_resolution", "agent_strategy"],
-  agent_coordination: ["market_creation", "coordination_signal", "agent_strategy", "anomaly"],
-  market_microstructure: ["liquidity_event", "price_movement", "market_creation"],
+  agential_game_theory: ["price_movement", "agent_strategy", "liquidity_event", "anomaly", "derivative_trade"],
+  reputation_systems: ["reputation_change", "dispute_resolution", "agent_strategy", "service_lifecycle"],
+  agent_coordination: ["market_creation", "coordination_signal", "agent_strategy", "anomaly", "task_lifecycle", "service_lifecycle"],
+  market_microstructure: ["liquidity_event", "price_movement", "market_creation", "derivative_trade"],
   oracle_reliability: ["dispute_resolution", "reputation_change"],
-  agent_native_economics: ["price_movement", "liquidity_event", "market_creation", "reputation_change"],
+  agent_native_economics: ["price_movement", "liquidity_event", "market_creation", "reputation_change", "service_lifecycle", "task_lifecycle", "derivative_trade"],
 };

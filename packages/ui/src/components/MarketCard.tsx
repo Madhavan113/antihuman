@@ -1,10 +1,10 @@
 import type { Market } from '../api/types'
 import { computeImpliedOdds } from '../utils/odds'
 import { OddsBar } from './OddsBar'
+import { StatusBadge } from './ui/Badge'
 
 interface MarketCardProps {
   market: Market
-  /** 0–1 normalized volume */
   volumeNorm?: number
   onClick?: () => void
   horizontal?: boolean
@@ -34,16 +34,24 @@ export function MarketCard({ market, onClick, horizontal = false, stakeByOutcome
       <button
         onClick={onClick}
         aria-label={`Market: ${market.question}`}
-        className="w-full flex items-center gap-4 px-4 py-3 text-left hover:bg-raised border-b transition-colors"
-        style={{ borderColor: 'var(--border)', background: 'transparent', cursor: 'pointer' }}
+        className="w-full flex items-center gap-4 px-4 py-2.5 text-left transition-colors duration-150"
+        style={{
+          borderBottom: '1px solid var(--border)',
+          background: 'transparent',
+          cursor: 'pointer',
+          border: 'none',
+          borderBlockEnd: '1px solid var(--border)',
+        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-raised)' }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
       >
-        <span className="flex-1 text-sm font-medium text-primary truncate">{market.question}</span>
-        <span className="status-badge shrink-0" data-status={market.status}>{market.status}</span>
+        <span className="flex-1 text-sm text-primary truncate" style={{ fontWeight: 400 }}>{market.question}</span>
+        <StatusBadge status={market.status} />
         <div className="w-24 shrink-0">
           <OddsBar outcomes={market.outcomes} counts={odds} height={6} />
         </div>
-        <span className="font-mono text-xs shrink-0" style={{ color: 'var(--text-muted)' }}>
-          {market.creatorAccountId.slice(0, 10)}…
+        <span className="font-mono text-xs shrink-0" style={{ color: 'var(--text-muted)', fontSize: 11 }}>
+          {market.creatorAccountId.slice(0, 10)}...
         </span>
         <span className="label shrink-0" style={{ fontSize: 10 }}>
           {resolutionLabel}
@@ -56,19 +64,21 @@ export function MarketCard({ market, onClick, horizontal = false, stakeByOutcome
     <button
       onClick={onClick}
       aria-label={`Market: ${market.question}`}
-      className="flex overflow-hidden text-left transition-colors"
+      className="flex overflow-hidden text-left transition-colors duration-150"
       style={{
         background: 'var(--bg-surface)',
         border: '1px solid var(--border)',
-        borderRadius: 14,
+        borderRadius: 'var(--radius-md)',
         cursor: 'pointer',
         width: '100%',
       }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent-dim)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}
     >
-      <div className="flex flex-col gap-3 p-4 flex-1 min-w-0">
+      <div className="flex flex-col gap-2.5 p-4 flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-sm font-medium text-primary leading-snug">{market.question}</p>
-          <span className="status-badge shrink-0" data-status={market.status}>{market.status}</span>
+          <p className="text-sm text-primary leading-snug" style={{ fontWeight: 400 }}>{market.question}</p>
+          <StatusBadge status={market.status} />
         </div>
 
         <div className="flex flex-col gap-1">
@@ -77,11 +87,11 @@ export function MarketCard({ market, onClick, horizontal = false, stakeByOutcome
               <span key={o} className="label" style={{ fontSize: 10 }}>{o}</span>
             ))}
           </div>
-          <OddsBar outcomes={market.outcomes} counts={odds} height={8} />
+          <OddsBar outcomes={market.outcomes} counts={odds} height={6} />
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
+          <span className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
             {market.creatorAccountId}
           </span>
           <span className="label" style={{ fontSize: 10 }}>

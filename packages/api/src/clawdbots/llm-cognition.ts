@@ -30,6 +30,10 @@ export type ClawdbotPlannedActionType =
   | "PUBLISH_ORDER"
   | "PLACE_BET"
   | "RESOLVE_MARKET"
+  | "REGISTER_SERVICE"
+  | "REQUEST_SERVICE"
+  | "CREATE_TASK"
+  | "BID_TASK"
   | "WAIT";
 
 export interface ClawdbotPlannedAction {
@@ -44,6 +48,21 @@ export interface ClawdbotPlannedAction {
   prompt?: string;
   resolvedOutcome?: string;
   reason?: string;
+  // Service fields
+  serviceName?: string;
+  serviceDescription?: string;
+  serviceCategory?: string;
+  servicePriceHbar?: number;
+  serviceId?: string;
+  serviceInput?: string;
+  // Task fields
+  taskTitle?: string;
+  taskDescription?: string;
+  taskCategory?: string;
+  taskBountyHbar?: number;
+  taskId?: string;
+  taskProposal?: string;
+  taskDeadlineMinutes?: number;
   confidence: number;
   rationale: string;
 }
@@ -221,21 +240,27 @@ export class LlmCognitionEngine {
     const sentimentLines = this.#formatSentimentForPrompt(openMarkets, context.marketSentiment);
 
     const prompt = [
-      `You are "${context.bot.name}", an autonomous prediction-market agent on the Simulacrum platform (Hedera testnet).`,
-      "You have your own wallet and bankroll. You independently create markets, place bets, and provide liquidity to maximize your returns.",
+      `You are "${context.bot.name}", an autonomous agent on the Simulacrum platform (Hedera testnet).`,
+      "You have your own wallet and bankroll. You operate in a full agent economy — prediction markets, services marketplace, and task board.",
       "",
       "RULE: You CANNOT bet on or place orders on markets you created. Only on markets created by OTHER agents.",
       "",
       "AVAILABLE ACTIONS:",
-      "- CREATE_MARKET: Invent a new prediction market on ANY topic — politics, tech, sports, science, crypto, culture, world events, weather, anything. Be creative and varied. NEVER repeat a topic that already has an open market.",
+      "- CREATE_MARKET: Invent a new prediction market on ANY topic — politics, tech, sports, science, crypto, culture, world events, weather, anything. Be creative and varied.",
       "- PLACE_BET: Bet on another agent's market if you have a view.",
       "- PUBLISH_ORDER: Post BID/ASK orders to provide liquidity or trade positions.",
+      "- REGISTER_SERVICE: Offer a service (COMPUTE, DATA, RESEARCH, ANALYSIS, ORACLE, CUSTOM) that other agents can request. Set a price in HBAR.",
+      "- REQUEST_SERVICE: Request an available service from another agent by providing input.",
+      "- CREATE_TASK: Post a bounty task for other agents to bid on and complete (RESEARCH, PREDICTION, DATA_COLLECTION, ANALYSIS, DEVELOPMENT, CUSTOM).",
+      "- BID_TASK: Bid on an open task posted by another agent with your proposal and price.",
       "- WAIT: Skip this turn (only if nothing looks interesting).",
       "",
       "STRATEGY TIPS:",
+      "- Diversify: balance market activity with services and tasks for steady income.",
       "- Create markets on diverse, timely topics that will attract bets from other agents.",
       "- If sentiment is lopsided (>65% on one side), the other side may be underpriced.",
-      "- Balance creating new markets with betting on existing ones. Both are valuable.",
+      "- Register services you can provide to earn HBAR from other agents.",
+      "- Post tasks to delegate work, or bid on tasks to earn bounties.",
       "- NEVER resolve markets — the oracle handles that.",
       "",
       "Produce a single goal with a title and detail describing what you want to do this turn.",
@@ -284,20 +309,24 @@ export class LlmCognitionEngine {
       : "none";
 
     const prompt = [
-      `You are "${context.bot.name}", an autonomous prediction-market agent on the Simulacrum platform (Hedera testnet).`,
+      `You are "${context.bot.name}", an autonomous agent on the Simulacrum platform (Hedera testnet).`,
       "",
       "RULE: You CANNOT bet on or place orders on your own markets. Only on markets created by OTHER agents.",
       "",
       "Pick ONE action to execute your goal.",
-      "Action types: CREATE_MARKET, PUBLISH_ORDER, PLACE_BET, WAIT.",
+      "Action types: CREATE_MARKET, PUBLISH_ORDER, PLACE_BET, REGISTER_SERVICE, REQUEST_SERVICE, CREATE_TASK, BID_TASK, WAIT.",
       "",
-      "CREATE_MARKET: Provide a \"prompt\" (a clear, verifiable prediction question on ANY topic — politics, tech, sports, science, crypto, AI, culture, weather, economics, entertainment, etc.) and \"initialOddsByOutcome\". Be creative and pick a DIFFERENT topic from existing markets.",
+      "CREATE_MARKET: Provide a \"prompt\" (a clear, verifiable prediction question) and \"initialOddsByOutcome\". Pick a DIFFERENT topic from existing markets.",
       "PLACE_BET: Provide marketId, outcome, amountHbar (1-5 HBAR). Must use a marketId from the bettable list below.",
       "PUBLISH_ORDER: Provide marketId, outcome, side (BID/ASK), quantity (1-50), price (0.01-0.99). Must use a marketId from the bettable list below.",
+      "REGISTER_SERVICE: Provide serviceName, serviceDescription, serviceCategory (COMPUTE|DATA|RESEARCH|ANALYSIS|ORACLE|CUSTOM), servicePriceHbar.",
+      "REQUEST_SERVICE: Provide serviceId and serviceInput describing what you need.",
+      "CREATE_TASK: Provide taskTitle, taskDescription, taskCategory (RESEARCH|PREDICTION|DATA_COLLECTION|ANALYSIS|DEVELOPMENT|CUSTOM), taskBountyHbar, taskDeadlineMinutes.",
+      "BID_TASK: Provide taskId, taskProposal, amountHbar (your proposed price).",
       "WAIT: Only if there are truly no opportunities.",
       "",
       "Return JSON only, no markdown fences:",
-      "{\"type\": string, \"marketId\"?: string, \"outcome\"?: string, \"side\"?: \"BID\"|\"ASK\", \"quantity\"?: number, \"price\"?: number, \"amountHbar\"?: number, \"prompt\"?: string, \"initialOddsByOutcome\"?: {\"OUTCOME\": number}, \"confidence\": number, \"rationale\": string}",
+      "{\"type\": string, \"marketId\"?: string, \"outcome\"?: string, \"side\"?: \"BID\"|\"ASK\", \"quantity\"?: number, \"price\"?: number, \"amountHbar\"?: number, \"prompt\"?: string, \"initialOddsByOutcome\"?: {\"OUTCOME\": number}, \"serviceName\"?: string, \"serviceDescription\"?: string, \"serviceCategory\"?: string, \"servicePriceHbar\"?: number, \"serviceId\"?: string, \"serviceInput\"?: string, \"taskTitle\"?: string, \"taskDescription\"?: string, \"taskCategory\"?: string, \"taskBountyHbar\"?: number, \"taskId\"?: string, \"taskProposal\"?: string, \"taskDeadlineMinutes\"?: number, \"confidence\": number, \"rationale\": string}",
       "",
       `Bankroll: ${context.bot.bankrollHbar} HBAR`,
       `Goal: ${context.goal.title} — ${context.goal.detail}`,
@@ -324,6 +353,10 @@ export class LlmCognitionEngine {
       "CREATE_MARKET",
       "PUBLISH_ORDER",
       "PLACE_BET",
+      "REGISTER_SERVICE",
+      "REQUEST_SERVICE",
+      "CREATE_TASK",
+      "BID_TASK",
       "WAIT"
     ]);
 
@@ -359,6 +392,19 @@ export class LlmCognitionEngine {
       prompt: parsed.prompt,
       resolvedOutcome: parsed.resolvedOutcome,
       reason: parsed.reason,
+      serviceName: typeof parsed.serviceName === "string" ? parsed.serviceName : undefined,
+      serviceDescription: typeof parsed.serviceDescription === "string" ? parsed.serviceDescription : undefined,
+      serviceCategory: typeof parsed.serviceCategory === "string" ? parsed.serviceCategory : undefined,
+      servicePriceHbar: typeof parsed.servicePriceHbar === "number" ? parsed.servicePriceHbar : undefined,
+      serviceId: typeof parsed.serviceId === "string" ? parsed.serviceId : undefined,
+      serviceInput: typeof parsed.serviceInput === "string" ? parsed.serviceInput : undefined,
+      taskTitle: typeof parsed.taskTitle === "string" ? parsed.taskTitle : undefined,
+      taskDescription: typeof parsed.taskDescription === "string" ? parsed.taskDescription : undefined,
+      taskCategory: typeof parsed.taskCategory === "string" ? parsed.taskCategory : undefined,
+      taskBountyHbar: typeof parsed.taskBountyHbar === "number" ? parsed.taskBountyHbar : undefined,
+      taskId: typeof parsed.taskId === "string" ? parsed.taskId : undefined,
+      taskProposal: typeof parsed.taskProposal === "string" ? parsed.taskProposal : undefined,
+      taskDeadlineMinutes: typeof parsed.taskDeadlineMinutes === "number" ? parsed.taskDeadlineMinutes : undefined,
       confidence:
         typeof parsed.confidence === "number" && Number.isFinite(parsed.confidence)
           ? Math.max(0, Math.min(1, parsed.confidence))

@@ -8,7 +8,6 @@ interface DrawerProps {
 }
 
 export function Drawer({ open, onClose, children, width = 480 }: DrawerProps) {
-  // Close on Escape — only when drawer is open
   useEffect(() => {
     if (!open) return
     function handleKey(e: KeyboardEvent) {
@@ -22,35 +21,39 @@ export function Drawer({ open, onClose, children, width = 480 }: DrawerProps) {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 z-40"
-        style={{ background: 'rgba(0,0,0,0.6)' }}
+        style={{ background: 'rgba(0,0,0,0.5)' }}
         onClick={onClose}
         aria-hidden="true"
       />
-
-      {/* Drawer panel */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Detail panel"
-        className="fixed right-0 top-0 h-screen z-50 flex flex-col border-l"
+        className="fixed right-0 top-0 h-screen z-50 flex flex-col"
         style={{
           width,
           background: 'var(--bg-surface)',
-          borderColor: 'var(--border)',
-          transform: 'translateX(0)',
-          transition: 'transform 0.25s linear',
+          borderLeft: '1px solid var(--border)',
+          animation: 'slideInRight 200ms ease-out',
         }}
       >
-        {/* Content */}
         <div className="flex flex-col h-full overflow-y-auto">
-          {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 label"
-            style={{ fontSize: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}
+            className="absolute top-3 right-3 z-10"
+            style={{
+              fontSize: 11,
+              fontWeight: 500,
+              background: 'var(--bg-raised)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '2px 8px',
+              cursor: 'pointer',
+              color: 'var(--text-dim)',
+              letterSpacing: '0.04em',
+            }}
             aria-label="Close drawer"
           >
             ESC
