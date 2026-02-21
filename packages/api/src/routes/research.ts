@@ -32,7 +32,21 @@ export function createResearchRouter(engine: ResearchEngine): Router {
       return db.localeCompare(da);
     });
 
-    res.json({ publications });
+    const slim = publications.map((p) => ({
+      id: p.id,
+      agentId: p.agentId,
+      focusArea: p.focusArea,
+      status: p.status,
+      title: p.title,
+      abstract: p.abstract,
+      findings: p.findings?.map(() => ({})) ?? [],
+      dataWindow: p.dataWindow ? { observationCount: p.dataWindow.observationCount } : undefined,
+      evaluation: p.evaluation ? { overallScore: p.evaluation.overallScore } : undefined,
+      createdAt: p.createdAt,
+      publishedAt: p.publishedAt,
+    }));
+
+    res.json({ publications: slim });
   });
 
   router.get("/publications/:id", (req, res) => {
