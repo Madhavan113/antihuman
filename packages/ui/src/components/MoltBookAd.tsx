@@ -7,228 +7,160 @@ interface MoltBookAdProps {
   agentName?: string
 }
 
-const CATEGORY_ICONS: Record<string, string> = {
-  ORACLE: '◈', DATA: '◇', RESEARCH: '◆', ANALYSIS: '▣', COMPUTE: '▤', CUSTOM: '▥',
-}
-
 export function MoltBookAd({ service, agentName }: MoltBookAdProps) {
-  const [buying, setBuying] = useState(false)
+  const [mode, setMode] = useState<'idle' | 'input' | 'loading' | 'done'>('idle')
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<MoltBookBuyResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleBuy = async () => {
     if (!input.trim()) return
-    setLoading(true)
+    setMode('loading')
     setError(null)
     try {
       const res = await servicesApi.buy(service.id, input.trim())
       setResult(res)
+      setMode('done')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Purchase failed')
-    } finally {
-      setLoading(false)
+      setError(err instanceof Error ? err.message : 'Failed')
+      setMode('input')
     }
   }
 
-  if (result) {
-    return (
-      <div style={{
-        background: 'var(--bg-surface)',
-        border: '2px solid var(--accent-dim)',
-        borderRadius: 'var(--radius-md)',
-        padding: 16,
-        minWidth: 300,
-        maxWidth: 340,
-        flexShrink: 0,
-      }}>
-        <div className="flex items-center gap-2 mb-2">
-          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: 'var(--accent)' }}>MOLTBOOK</span>
-          <span style={{ fontSize: 10, color: 'var(--success)', fontWeight: 600 }}>FULFILLED</span>
-        </div>
-        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>{service.name}</p>
-        <p style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 8 }}>by {agentName ?? service.providerAccountId}</p>
-        <div style={{
-          background: 'var(--bg-raised)',
-          borderRadius: 6,
-          padding: 12,
-          fontSize: 12,
-          lineHeight: 1.6,
-          color: 'var(--text-primary)',
-          maxHeight: 200,
-          overflowY: 'auto',
-          whiteSpace: 'pre-wrap',
-        }}>
-          {result.output}
-        </div>
-        <button
-          onClick={() => { setResult(null); setBuying(false); setInput(''); }}
-          style={{
-            marginTop: 10,
-            width: '100%',
-            padding: '6px 0',
-            fontSize: 11,
-            fontWeight: 600,
-            background: 'transparent',
-            border: '1px solid var(--border)',
-            borderRadius: 4,
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-          }}
-        >
-          Done
-        </button>
-      </div>
-    )
-  }
+  const reset = () => { setMode('idle'); setInput(''); setResult(null); setError(null) }
 
   return (
-    <div style={{
-      background: 'var(--bg-surface)',
-      border: '1.5px solid var(--border)',
-      borderRadius: 'var(--radius-md)',
-      padding: 16,
-      minWidth: 280,
-      maxWidth: 320,
-      flexShrink: 0,
-      position: 'relative',
-    }}>
-      <div className="flex items-center justify-between mb-2">
-        <span style={{
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: 1.5,
-          color: 'var(--accent)',
-          textTransform: 'uppercase',
-        }}>
-          MoltBook
+    <>
+      {/* Compact listing row */}
+      <div
+        className="flex items-center gap-3 px-4 py-2.5 transition-colors duration-150"
+        style={{
+          borderBottom: '1px solid var(--border)',
+          cursor: mode === 'idle' ? 'pointer' : undefined,
+          background: mode !== 'idle' ? 'var(--bg-raised)' : undefined,
+        }}
+        onClick={() => mode === 'idle' && setMode('input')}
+        onMouseEnter={e => { if (mode === 'idle') e.currentTarget.style.background = 'var(--bg-raised)' }}
+        onMouseLeave={e => { if (mode === 'idle') e.currentTarget.style.background = 'transparent' }}
+      >
+        <span style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 600, minWidth: 52 }}>
+          {service.category}
         </span>
-        <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>
-          {CATEGORY_ICONS[service.category] ?? '▥'} {service.category}
-        </span>
-      </div>
-
-      <p style={{
-        fontSize: 14,
-        fontWeight: 600,
-        color: 'var(--text-primary)',
-        lineHeight: 1.3,
-        marginBottom: 4,
-      }}>
-        {service.name}
-      </p>
-
-      <p style={{
-        fontSize: 11,
-        color: 'var(--text-dim)',
-        marginBottom: 8,
-      }}>
-        by <span style={{ color: 'var(--text-muted)' }}>{agentName ?? service.providerAccountId}</span>
-      </p>
-
-      <p style={{
-        fontSize: 12,
-        color: 'var(--text-muted)',
-        lineHeight: 1.5,
-        marginBottom: 12,
-        display: '-webkit-box',
-        WebkitLineClamp: 3,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-      }}>
-        {service.description}
-      </p>
-
-      <div className="flex items-center justify-between" style={{ borderTop: '1px dashed var(--border)', paddingTop: 10 }}>
-        <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'monospace' }}>
-          {service.priceHbar} <span style={{ fontSize: 12, fontWeight: 400 }}>HBAR</span>
-        </span>
-        {service.completedCount > 0 && (
-          <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>
-            {service.completedCount} sold
+        <div className="flex-1 min-w-0">
+          <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 500 }}>
+            {service.name}
           </span>
+          <span style={{ fontSize: 11, color: 'var(--text-dim)', marginLeft: 8 }}>
+            {agentName ?? service.providerAccountId}
+          </span>
+        </div>
+        <span className="font-mono" style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 600, flexShrink: 0 }}>
+          {service.priceHbar} ℏ
+        </span>
+        {mode === 'idle' && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setMode('input') }}
+            style={{
+              padding: '3px 10px',
+              fontSize: 10,
+              fontWeight: 600,
+              background: 'var(--accent)',
+              color: '#000',
+              border: 'none',
+              borderRadius: 3,
+              cursor: 'pointer',
+              flexShrink: 0,
+              letterSpacing: 0.3,
+            }}
+          >
+            BUY
+          </button>
+        )}
+        {mode === 'done' && (
+          <button
+            onClick={(e) => { e.stopPropagation(); reset() }}
+            style={{
+              padding: '3px 10px',
+              fontSize: 10,
+              fontWeight: 600,
+              background: 'transparent',
+              color: 'var(--text-dim)',
+              border: '1px solid var(--border)',
+              borderRadius: 3,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            CLOSE
+          </button>
         )}
       </div>
 
-      {!buying ? (
-        <button
-          onClick={() => setBuying(true)}
-          style={{
-            marginTop: 10,
-            width: '100%',
-            padding: '8px 0',
-            fontSize: 12,
-            fontWeight: 600,
-            background: 'var(--accent)',
-            color: '#000',
-            border: 'none',
-            borderRadius: 4,
-            cursor: 'pointer',
-            letterSpacing: 0.5,
-          }}
-        >
-          BUY NOW
-        </button>
-      ) : (
-        <div style={{ marginTop: 10 }}>
+      {/* Expanded input / result panel */}
+      {mode === 'input' && (
+        <div className="px-4 py-3" style={{ background: 'var(--bg-raised)', borderBottom: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 6 }}>{service.description}</p>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="What do you need? Describe your request..."
-            disabled={loading}
+            placeholder="Describe what you need..."
+            autoFocus
             style={{
               width: '100%',
-              minHeight: 60,
+              minHeight: 48,
               padding: 8,
               fontSize: 12,
               fontFamily: 'inherit',
-              background: 'var(--bg-raised)',
+              background: 'var(--bg-surface)',
               color: 'var(--text-primary)',
               border: '1px solid var(--border)',
               borderRadius: 4,
-              resize: 'vertical',
+              resize: 'none',
               outline: 'none',
             }}
           />
-          {error && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{error}</p>}
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={() => { setBuying(false); setInput(''); setError(null); }}
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: '6px 0',
-                fontSize: 11,
-                background: 'transparent',
-                border: '1px solid var(--border)',
-                borderRadius: 4,
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-              }}
-            >
+          {error && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 3 }}>{error}</p>}
+          <div className="flex gap-2 mt-2 justify-end">
+            <button onClick={reset} style={{ padding: '4px 12px', fontSize: 11, background: 'transparent', border: '1px solid var(--border)', borderRadius: 3, color: 'var(--text-muted)', cursor: 'pointer' }}>
               Cancel
             </button>
             <button
               onClick={handleBuy}
-              disabled={loading || !input.trim()}
-              style={{
-                flex: 1,
-                padding: '6px 0',
-                fontSize: 11,
-                fontWeight: 600,
-                background: loading ? 'var(--bg-raised)' : 'var(--accent)',
-                color: loading ? 'var(--text-dim)' : '#000',
-                border: 'none',
-                borderRadius: 4,
-                cursor: loading ? 'wait' : 'pointer',
-              }}
+              disabled={!input.trim()}
+              style={{ padding: '4px 12px', fontSize: 11, fontWeight: 600, background: input.trim() ? 'var(--accent)' : 'var(--bg-surface)', color: input.trim() ? '#000' : 'var(--text-dim)', border: 'none', borderRadius: 3, cursor: input.trim() ? 'pointer' : 'default' }}
             >
-              {loading ? 'Agent thinking...' : `Purchase · ${service.priceHbar} HBAR`}
+              Purchase · {service.priceHbar} HBAR
             </button>
           </div>
         </div>
       )}
-    </div>
+
+      {mode === 'loading' && (
+        <div className="px-4 py-3 flex items-center gap-2" style={{ background: 'var(--bg-raised)', borderBottom: '1px solid var(--border)' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>
+            {agentName ?? 'Agent'} is thinking...
+          </span>
+        </div>
+      )}
+
+      {mode === 'done' && result && (
+        <div className="px-4 py-3" style={{ background: 'var(--bg-raised)', borderBottom: '1px solid var(--border)' }}>
+          <div style={{
+            background: 'var(--bg-surface)',
+            borderRadius: 4,
+            padding: 12,
+            fontSize: 12,
+            lineHeight: 1.6,
+            color: 'var(--text-primary)',
+            maxHeight: 180,
+            overflowY: 'auto',
+            whiteSpace: 'pre-wrap',
+            border: '1px solid var(--border)',
+          }}>
+            {result.output}
+          </div>
+        </div>
+      )}
+    </>
   )
 }

@@ -101,14 +101,15 @@ export function Dashboard() {
       {/* MoltBook marketplace */}
       {activeServices.length > 0 && (
         <div style={{ borderBottom: '1px solid var(--border)' }}>
-          <div className="flex items-center gap-3 px-6 pt-3 pb-1">
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: 'var(--accent)', textTransform: 'uppercase' }}>MoltBook</span>
-            <span style={{ fontSize: 11, color: 'var(--text-dim)' }}>Agent services marketplace — buy directly from AI agents</span>
-          </div>
           <div
-            className="flex gap-3 px-6 pb-3 overflow-x-auto"
-            style={{ scrollbarWidth: 'thin', scrollbarColor: 'var(--border) transparent' }}
+            className="flex items-center gap-3 px-4 py-1.5"
+            style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}
           >
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, color: 'var(--accent)' }}>MOLTBOOK</span>
+            <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>Buy services from AI agents</span>
+            <span className="font-mono" style={{ fontSize: 10, color: 'var(--text-dim)', marginLeft: 'auto' }}>{activeServices.length} listed</span>
+          </div>
+          <div style={{ maxHeight: 300, overflowY: 'auto' }}>
             {activeServices.map(svc => (
               <MoltBookAd key={svc.id} service={svc} agentName={agentNamesByAccount[svc.providerAccountId]} />
             ))}
