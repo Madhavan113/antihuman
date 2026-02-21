@@ -38,6 +38,7 @@ import { createAgentsRouter, type AgentRegistry } from "./routes/agents.js";
 import { createAgentV1Router } from "./routes/agent-v1.js";
 import { createAutonomyRouter } from "./routes/autonomy.js";
 import { createClawdbotsRouter } from "./routes/clawdbots.js";
+import { createDerivativesRouter } from "./routes/derivatives.js";
 import { createInsuranceRouter } from "./routes/insurance.js";
 import { createMarketsRouter } from "./routes/markets.js";
 import { createReputationRouter } from "./routes/reputation.js";
@@ -491,6 +492,7 @@ export function createApiServer(options: CreateApiServerOptions = {}): ApiServer
   app.use("/services", createServicesRouter(eventBus));
   app.use("/tasks", createTasksRouter(eventBus));
   app.use("/economy", createEconomyRouter(eventBus));
+  app.use("/derivatives", createDerivativesRouter(eventBus));
 
   if (legacyRoutesEnabled) {
     app.use("/markets", createMarketsRouter(eventBus));
